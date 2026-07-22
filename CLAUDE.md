@@ -16,6 +16,8 @@
 
 ## 2. 티켓 흐름 — 사람이 지정한다
 
+착수(1–3)는 **`ticket-start`** skill, 완료 보고(6)는 **`ticket-report`** skill의 절차를 따른다.
+
 1. **사람이 티켓 번호를 지정**한다. `gh issue view <N> -R jyoliar-lab/ops-workflow`로 읽는다.
 2. 티켓의 **"완료의 모양"과 "딸리지 않는 것"** 을 먼저 파악한다. 근거로 걸린 ADR·discussion을 읽는다(경로는 티켓 본문의 링크, 또는 `workspace/ops-workflow/docs/`).
 3. 대상 저장소를 준비하고(§1), **티켓당 브랜치** `ticket/<N>-<slug>` 에서 일한다.
@@ -41,5 +43,6 @@
 ## 5. 강제는 구조로
 
 - 쓰기 경계·close·merge: **PreToolUse hook**(`.claude/hooks/guard-write.py`)가 거부한다.
+- PR 규약(티켓 참조 필수 · close 키워드 금지 · 본문 인라인): 같은 hook가 `gh pr create`에서 검증한다.
 - 머지 게이트: 대상 저장소의 required check가 거부한다.
 - 막히면 **우회하지 않고** 왜 막혔는지 읽는다. hook가 잘못됐다고 판단되면 그것도 사람에게 알린다 — 고치는 것은 agent가 아니다.
