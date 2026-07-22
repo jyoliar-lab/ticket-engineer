@@ -1,2 +1,5 @@
 # PC별 로컬 설정 — env·개인 권한. 커밋하지 않는다.
 .claude/settings.local.json
+
+# 대상 코드 저장소 클론 — 하네스만 추적한다 (CLAUDE.md §1)
+workspace/
