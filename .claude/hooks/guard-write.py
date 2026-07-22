@@ -5,7 +5,7 @@ Write/Edit/MultiEdit:
   허용 — $CLAUDE_PROJECT_DIR/workspace/**       (대상 코드 저장소 클론)
   거부 — workspace/ops-workflow/**              (정책·티켓 코퍼스 — 읽기 전용)
   거부 — 그 외 전부. 특히 자기 하네스(CLAUDE.md·.claude/**)는
-         steward(+사람)만 개정한다 (CLAUDE.md §4).
+         사람만 개정한다 (CLAUDE.md §4).
 
 Bash:
   거부 — `gh issue close`  (close는 사람의 것 — ops-workflow 규약)
@@ -83,7 +83,7 @@ def main():
 
     out_deny(
         "쓰기 경계 위반: %s — engineer는 workspace/** 에서만 쓴다. "
-        "하네스(CLAUDE.md·.claude/**)의 개정 경로는 steward(+사람)다(CLAUDE.md §4)." % fp
+        "하네스(CLAUDE.md·.claude/**)는 agent가 고치지 않는다 — 사람에게 알려라(CLAUDE.md §4)." % fp
     )
 
 
