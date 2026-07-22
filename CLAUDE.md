@@ -10,7 +10,7 @@
 ## 1. 워크스페이스 — 모든 코드는 `workspace/` 아래
 
 - 대상 코드 저장소는 **`workspace/<repo-name>`** 에 둔다 (gitignored — 이 저장소가 추적하는 것은 하네스뿐).
-- **이미 있으면 pull 먼저, 없으면 clone**: `git -C workspace/<repo> pull` / `git clone <url> workspace/<repo>`. 어느 저장소인지는 티켓이 말해준다.
+- **이미 있으면 pull 먼저, 없으면 clone**: `git -C workspace/<repo> pull` / `git clone <url> workspace/<repo>`. 어느 저장소인지는 **티켓 본문의 '저장소' 절**(target/ref)이 말해준다 — 산문에서 추측하지 않는다. **target이 수정 권한의 경계다** — ref·나열 밖 저장소는 읽기만 하고, 고쳐야 하게 되면 §3의 절차로 target에 먼저 올린다.
 - 쓰기는 `workspace/` 아래에서만 가능하다 — **guard hook가 강제**한다.
 - 예외: **`workspace/ops-workflow/`는 읽기 전용**이다(정책·티켓 코퍼스 열람용 클론). hook가 쓰기를 거부한다. ops-workflow에 남길 것(코멘트)은 파일이 아니라 `gh`로 컨트롤 플레인에 남긴다.
 
@@ -20,7 +20,7 @@
 
 1. **사람이 티켓 번호를 지정**한다. `gh issue view <N> -R jyoliar-lab/ops-workflow`로 읽는다.
 2. 티켓의 **"완료의 모양"과 "딸리지 않는 것"** 을 먼저 파악한다. 근거로 걸린 ADR·discussion을 읽는다(경로는 티켓 본문의 링크, 또는 `workspace/ops-workflow/docs/`).
-3. 대상 저장소를 준비하고(§1), **티켓당 브랜치** `ticket/<N>-<slug>` 에서 일한다.
+3. 저장소 절의 target 전부(필요한 ref 포함)를 준비하고(§1), **티켓당 브랜치** `ticket/<N>-<slug>` 에서 일한다.
 4. **PR**: 본문에 `jyoliar-lab/ops-workflow#<N>` 참조를 남긴다(브리지 — 이슈 타임라인에 역링크가 생긴다). **`Closes`/`Fixes` 등 자동 close 키워드는 쓰지 않는다** — PR 머지 ≠ 티켓 종료.
 5. 대상 저장소에 **머지 게이트(required check)가 있으면 통과가 필수**다. 우회하지 않는다(admin merge·force 금지).
 6. **완료 보고**: 티켓 코멘트로, "완료의 모양" **항목별 대조**를 남긴다 (무엇이 어떻게 충족됐고, PR은 어디인지).
@@ -32,6 +32,14 @@
 
 - 해당 부분 작업을 **멈추고 사람에게 묻는다.**
 - 티켓과 독립적인 나머지 부분은 계속 진행해도 된다.
+
+**target 밖 저장소를 고쳐야 하게 될 때도 같다** — target 목록은 수정 권한의 경계이므로, 스스로 넓히지 않는다:
+
+1. 멈추고 사람에게 묻는다.
+2. 합의되면 **티켓의 target 목록을 먼저 갱신**한다 — 본문 '저장소' 절(`gh issue edit`)과 보드의 `Target Repos` 필드 둘 다. **갱신은 필수다** — 목록이 실제 수정 범위와 어긋난 채 남으면 보드의 저장소 질의가 거짓말을 한다.
+3. 그다음에 고친다.
+
+ref 목록의 갱신(참조한 저장소를 절에 반영)은 **권장**이지 의무가 아니다.
 
 ## 4. 하지 않는 것
 

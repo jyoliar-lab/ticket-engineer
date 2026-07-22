@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""완료 보고 preflight — 보고 전 기계 확인 4종. 전부 통과해야 보고한다.
+"""완료 보고 preflight — 보고 전 기계 확인 5종. 전부 통과해야 보고한다.
 
 사용: preflight.py <ticket-number> [target-repo-dir=.]
 
@@ -7,6 +7,9 @@
   ② PR 본문에 jyoliar-lab/ops-workflow#<N> 참조가 있다 (브리지)
   ③ 자동 close 키워드가 없다 (PR 머지 ≠ 티켓 종료)
   ④ 체크가 실패·진행 중이 아니다 (머지 게이트)
+  ⑤ 이 저장소가 티켓 '저장소' 절의 수정 대상(target) 목록에 있다 (ADR-0016 파일럿)
+     — target은 살아 있는 사실이다. 작업 중 늘었으면 티켓을 먼저 갱신했어야 한다.
+     절이 없는 구식 티켓은 통과(경고만).
 
 하나라도 실패 → exit 1. 보고하지 말고 해당 항목을 해결하라.
 이 스크립트는 '완료의 모양' 충족을 판정하지 않는다 — 그것은 의미 판정이다.
@@ -38,6 +41,37 @@ def check_state(c):
     return (c.get("conclusion") or c.get("state") or c.get("status") or "").upper()
 
 
+def target_repo_check(n, cwd):
+    """⑤ 이 저장소 ∈ 티켓 target 목록 (ADR-0016 파일럿). 절이 없으면 통과(구식 티켓)."""
+    r = subprocess.run(["gh", "repo", "view", "--json", "nameWithOwner"],
+                       cwd=cwd, capture_output=True, text=True)
+    if r.returncode != 0:
+        return (False, "⑤ 저장소: 현재 저장소를 식별하지 못했다 — "
+                + (r.stderr.strip() or "gh repo view 실패"))
+    here = json.loads(r.stdout)["nameWithOwner"]
+
+    r = subprocess.run(["gh", "issue", "view", str(n),
+                        "-R", "jyoliar-lab/ops-workflow", "--json", "body"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return (False, f"⑤ 저장소: 티켓 #{n} 본문을 읽지 못했다 — "
+                + (r.stderr.strip() or "gh issue view 실패"))
+    body = json.loads(r.stdout).get("body") or ""
+
+    line = next((ln for ln in body.splitlines() if "수정 대상(target)" in ln), None)
+    if line is None:
+        return (True, "⑤ 저장소: 티켓에 '저장소' 절이 없다(절 도입 전 티켓) — 목록 대조 생략")
+
+    targets = [t.lower() for t in re.findall(r"`([^`\s]+/[^`\s]+)`", line)]
+    if here.lower() in targets:
+        return (True, f"⑤ 저장소: {here} — target 목록에 있음")
+    if not targets:
+        return (False, f"⑤ 저장소: target이 '(없음)'인데 {here} 에서 보고하려 한다 — "
+                "저장소가 생겼으면 티켓의 target 목록을 먼저 갱신하라(사람과 합의, 갱신 필수).")
+    return (False, f"⑤ 저장소: {here} 가 target 목록({', '.join(targets)})에 없다 — "
+            "수정 범위가 늘었으면 티켓을 먼저 갱신하라(사람과 합의, 갱신 필수).")
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -67,6 +101,8 @@ def main():
     results.append((kw is None, "③ close 키워드: "
                     + ("없음" if kw is None
                        else f"발견 {kw.group(0)!r} — PR 머지 ≠ 티켓 종료")))
+
+    results.append(target_repo_check(n, cwd))
 
     checks = pr.get("statusCheckRollup") or []
     if not checks:
