@@ -10,10 +10,10 @@
 ## 1. 워크스페이스 — 원격이 진실, 로컬은 티켓별 worktree
 
 - 어느 저장소인지는 **티켓 본문의 '저장소' 절**(target/ref)이 말해준다 — 산문에서 추측하지 않는다. **target이 수정 권한의 경계다** — ref·나열 밖 저장소는 읽기만 하고, 고쳐야 하게 되면 §3의 절차로 target에 먼저 올린다.
-- 레이아웃 (gitignored — 이 저장소가 추적하는 것은 하네스뿐):
-  - **`workspace/<repo>/ticket-<N>/`** — 티켓별 worktree = 작업 디렉터리. 동시 여러 티켓이 서로를 오염시키지 않는다.
-  - **`workspace/.bare/<repo>.git`** — bare 저장소. **도구(`ticket-run.py`)만 만진다** — hook가 쓰기를 거부한다.
-  - **`workspace/ops-workflow/`** — 정책·티켓 코퍼스, **읽기 전용**(hook가 거부). SessionStart hook가 세션 시작 시 최신화한다. 남길 것(코멘트)은 파일이 아니라 `gh`로 컨트롤 플레인에.
+- 레이아웃 — **티켓의 target/ref 이분이 그대로 디렉터리 경계다** (gitignored — 이 저장소가 추적하는 것은 하네스뿐):
+  - **`workspace/target/<repo>/ticket-<N>/`** — 티켓별 worktree = 작업 디렉터리. 동시 여러 티켓이 서로를 오염시키지 않는다.
+  - **`workspace/target/.bare/<repo>.git`** — bare 저장소. **도구(`ticket-run.py`)만 만진다** — hook가 쓰기를 거부한다.
+  - **`workspace/ref/<repo>`** — 참조 저장소, **전부 읽기 전용**(hook가 거부). 정책·티켓 코퍼스(`ref/ops-workflow`)도 여기 산다. SessionStart hook가 세션 시작 시 ref 전체를 최신화한다. ops-workflow에 남길 것(코멘트)은 파일이 아니라 `gh`로 컨트롤 플레인에.
 - 준비·정렬은 손 git이 아니라 **`ticket-run.py`가 한다**(`ticket-start` skill) — 원격 브랜치가 진실의 원천이고, exit 코드(0 진행 / 1 거부 / 2 제안 후 승인 / 3 보고만)가 다음 행동이다.
 - 쓰기는 `workspace/` 아래에서만 가능하다 — **guard hook가 강제**한다.
 
@@ -22,8 +22,8 @@
 착수(1–3)는 **`ticket-start`** skill, 완료 보고(6)는 **`ticket-report`** skill의 절차를 따른다.
 
 1. **사람이 티켓 번호를 지정**한다. `gh issue view <N> -R jyoliar-lab/ops-workflow`로 읽는다.
-2. 티켓의 **"완료의 모양"과 "딸리지 않는 것"** 을 먼저 파악한다. 근거로 걸린 ADR·discussion을 읽는다(경로는 티켓 본문의 링크, 또는 `workspace/ops-workflow/docs/`).
-3. `ticket-run.py`로 target 전부의 브랜치·worktree를 정렬하고(§1 — 착수·재개를 스크립트가 판별한다), **티켓당 브랜치** `ticket/<N>-<slug>` 의 worktree에서 일한다. 참조가 필요한 ref 저장소는 읽기용으로 clone해도 된다(수정 금지).
+2. 티켓의 **"완료의 모양"과 "딸리지 않는 것"** 을 먼저 파악한다. 근거로 걸린 ADR·discussion을 읽는다(경로는 티켓 본문의 링크, 또는 `workspace/ref/ops-workflow/docs/`).
+3. `ticket-run.py`로 target 전부의 브랜치·worktree를 정렬하고(§1 — 착수·재개를 스크립트가 판별하고, 티켓에 나열된 ref도 선제 clone한다), **티켓당 브랜치** `ticket/<N>-<slug>` 의 worktree에서 일한다. 나열 밖 참조가 더 필요하면 `workspace/ref/<repo>`에 직접 clone해서 읽는다(쓰기는 hook가 거부).
 4. **PR**: 본문에 `jyoliar-lab/ops-workflow#<N>` 참조를 남긴다(브리지 — 이슈 타임라인에 역링크가 생긴다). **`Closes`/`Fixes` 등 자동 close 키워드는 쓰지 않는다** — PR 머지 ≠ 티켓 종료.
 5. 대상 저장소에 **머지 게이트(required check)가 있으면 통과가 필수**다. 우회하지 않는다(admin merge·force 금지).
 6. **완료 보고**: 티켓 코멘트로, "완료의 모양" **항목별 대조**를 남긴다 (무엇이 어떻게 충족됐고, PR은 어디인지).

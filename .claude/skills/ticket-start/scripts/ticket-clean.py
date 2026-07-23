@@ -4,7 +4,7 @@
 사용: ticket-clean.py <ticket-number>
 
 하는 일 (target 저장소마다):
-  - workspace/<repo>/ticket-<N>/ worktree 제거 + bare 의 로컬 브랜치 삭제
+  - workspace/target/<repo>/ticket-<N>/ worktree 제거 + bare 의 로컬 브랜치 삭제
   - 원격 ticket/<N>-* 브랜치 삭제
 
 거부하는 경우 (유실·조기 정리 방지 — 우회하지 않는다):
@@ -20,7 +20,7 @@ import sys
 
 OPS_REPO = os.environ.get("OPS_REPO", "jyoliar-lab/ops-workflow")
 ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-WS = os.path.join(ROOT, "workspace")
+WS = os.path.join(ROOT, "workspace", "target")
 
 
 def die(*lines):

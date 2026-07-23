@@ -13,7 +13,7 @@ description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, "완
 2. **경계 추출** — 티켓에서 두 절을 **그대로 옮겨 적는다**(요약하지 않는다):
    - **완료의 모양** — 검수 기준이다. 그대로 `ticket-report`의 대조표 행이 된다.
    - **딸리지 않는 것** — 의도적 미결정 축이다. 작업 중 이 축에 닿으면 **멈추고 사람에게**(CLAUDE.md §3).
-3. **근거 읽기** — 티켓이 링크한 ADR·discussion을 `workspace/ops-workflow/docs/`에서 읽는다. (코퍼스는 SessionStart hook가 세션 시작 시 최신화했다. 읽기 전용 — 저작 규약은 알 필요 없다.)
+3. **근거 읽기** — 티켓이 링크한 ADR·discussion을 `workspace/ref/ops-workflow/docs/`에서 읽는다. (ref 경로는 SessionStart hook가 세션 시작 시 최신화했다. 읽기 전용 — 저작 규약은 알 필요 없다.)
 4. **저장소 정렬** — 판단하지 말고 스크립트를 돌린다:
    ```bash
    python3 "$CLAUDE_SKILL_DIR/scripts/ticket-run.py" <N> [--slug <slug>]
@@ -30,7 +30,7 @@ description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, "완
    - `--slug`는 새 착수에만 필요하다(소문자 kebab 3–6단어).
    - target이 `(없음)`(신규 저장소 생성 작업)이면 exit 1 — 저장소 이름·위치·생성 방식을 **사람과 확인**한 뒤 진행한다.
    - 파괴적 정리(`reset --hard`·`stash drop`·강제 checkout)는 exit가 무엇이든 **하지 않는다.**
-5. **작업 위치** — `workspace/<repo>/ticket-<N>/` (티켓별 worktree). 다른 티켓의 worktree·`workspace/.bare/`는 건드리지 않는다.
+5. **작업 위치** — `workspace/target/<repo>/ticket-<N>/` (티켓별 worktree). 다른 티켓의 worktree·`workspace/target/.bare/`는 건드리지 않는다. 티켓에 나열된 ref는 ticket-run이 `workspace/ref/<repo>`에 **선제 clone해 뒀다** — ref는 비완전 목록이므로, 나열 밖 저장소가 더 필요하면 같은 경로에 직접 clone한다. ref는 **읽기만** — hook가 쓰기를 거부한다.
 6. **착수 요약** — 경계 2절 + 스크립트가 보인 상태 + 이해한 작업 계획을 사용자에게 보인다. 계획이 티켓과 어긋날 소지가 보이면 진행 전에 묻는다.
 
 ## 뒷정리 — 사람이 close를 확인한 뒤에만

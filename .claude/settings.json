@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/refresh-corpus.py\""
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/refresh-refs.py\""
           }
         ]
       }

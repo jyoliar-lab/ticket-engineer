@@ -2,8 +2,9 @@
 """PreToolUse guard — ticket-engineer의 경계를 구조로 강제한다.
 
 Write/Edit/MultiEdit:
-  허용 — $CLAUDE_PROJECT_DIR/workspace/**       (대상 코드 저장소 클론)
-  거부 — workspace/ops-workflow/**              (정책·티켓 코퍼스 — 읽기 전용)
+  허용 — workspace/target/**                    (티켓 worktree — 수정 권한의 경계)
+  거부 — workspace/ref/**                       (참조 저장소·정책 코퍼스 — 읽기 전용. ADR-0016의 ref)
+  거부 — workspace/target/.bare/**              (bare 저장소 — 도구만 만진다)
   거부 — 그 외 전부. 특히 자기 하네스(CLAUDE.md·.claude/**)는
          사람만 개정한다 (CLAUDE.md §4).
 
@@ -86,16 +87,21 @@ def main():
 
     ws = os.path.join(proj, "workspace")
 
-    if under(fp, os.path.join(ws, "ops-workflow")):
-        out_deny("workspace/ops-workflow 는 읽기 전용이다(정책·티켓 코퍼스). "
-                 "남길 것이 있으면 파일이 아니라 gh 코멘트로(컨트롤 플레인).")
+    if under(fp, os.path.join(ws, "ref")):
+        out_deny("workspace/ref 는 읽기 전용이다(참조 저장소·정책 코퍼스 — ADR-0016의 ref). "
+                 "고쳐야 하면 사람과 target 승격 절차(CLAUDE.md §3)를 밟고 target worktree에서 하라. "
+                 "ops-workflow에 남길 것은 파일이 아니라 gh 코멘트로(컨트롤 플레인).")
 
-    if under(fp, os.path.join(ws, ".bare")):
-        out_deny("workspace/.bare 는 도구(ticket-run.py)만 만진다 — "
-                 "작업은 티켓 worktree(workspace/<repo>/ticket-<N>/)에서 하라.")
+    if under(fp, os.path.join(ws, "target", ".bare")):
+        out_deny("workspace/target/.bare 는 도구(ticket-run.py)만 만진다 — "
+                 "작업은 티켓 worktree(workspace/target/<repo>/ticket-<N>/)에서 하라.")
+
+    if under(fp, os.path.join(ws, "target")):
+        allow()
 
     if under(fp, ws):
-        allow()
+        out_deny("workspace 직속에는 쓰지 않는다 — 작업은 workspace/target/<repo>/ticket-<N>/, "
+                 "참조는 workspace/ref/<repo>(읽기 전용)다.")
 
     out_deny(
         "쓰기 경계 위반: %s — engineer는 workspace/** 에서만 쓴다. "

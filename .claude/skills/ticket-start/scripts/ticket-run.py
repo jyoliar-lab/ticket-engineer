@@ -8,8 +8,11 @@
   - 착수 판별 = 원격에 ticket/<N>-* 브랜치가 있는가. 로컬 상태는 판별·기점에 영향 없음.
   - 새 브랜치는 원격 기본 브랜치 HEAD 기준으로 "원격에" 생성된다.
 로컬은 티켓별 worktree다 (동시 여러 티켓 안전 — 공유 HEAD 없음):
-  workspace/.bare/<repo>.git      ← bare 저장소. 도구만 만진다 (hook가 Write 거부)
-  workspace/<repo>/ticket-<N>/    ← 티켓 worktree = 작업 디렉터리
+  workspace/target/.bare/<repo>.git      ← bare 저장소. 도구만 만진다 (hook가 Write 거부)
+  workspace/target/<repo>/ticket-<N>/    ← 티켓 worktree = 작업 디렉터리
+  workspace/ref/<repo>                   ← 참조 저장소(읽기 전용). 티켓에 나열된 ref 는
+                                            이 도구가 선제 clone 한다. ref 는 비완전 목록이라
+                                            나열 밖 저장소는 agent 가 필요 시 직접 clone.
 
 exit 코드 = agent의 다음 행동 (프롬프트 해석에 기대지 않는다):
   0 = 진행하라 (케이스별 정보는 stdout — 읽고 판단·처리)
@@ -33,7 +36,8 @@ IN_PROGRESS = "In Progress"            # 착수 전이 목적지 (§5: 사람이
 CONTAINER_TYPES = ("Epic", "Feature")
 
 ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-WS = os.path.join(ROOT, "workspace")
+WS = os.path.join(ROOT, "workspace", "target")   # 수정 권한의 경계
+REF = os.path.join(ROOT, "workspace", "ref")     # 읽기 전용 참조 (hook 가 쓰기 거부)
 
 
 def die(*lines):
@@ -82,7 +86,7 @@ def load_ticket(n):
     return issue
 
 
-def parse_targets(body):
+def parse_repos(body):
     line = next((ln for ln in (body or "").splitlines() if "수정 대상(target)" in ln), None)
     if line is None:
         die("거부: 티켓에 '저장소' 절이 없다(절 도입 전 구식 티켓) — 대상을 추측하지 않는다. 사람에게.")
@@ -90,7 +94,22 @@ def parse_targets(body):
     if not targets:
         die("거부: 수정 대상(target)이 '(없음)' — 신규 저장소 생성 등 대상이 아직 없는 작업이다.",
             "  저장소 이름·위치·생성 방식을 사람과 확인한 뒤 진행하라 (ticket-start ④).")
-    return targets
+    ref_line = next((ln for ln in (body or "").splitlines() if "참조(ref)" in ln), None)
+    refs = re.findall(r"`([^`\s]+/[^`\s]+)`", ref_line or "")
+    return targets, [r for r in refs if r not in targets]
+
+
+def ensure_refs(refs):
+    """나열된 ref 를 선제 clone 한다 (비완전 목록 — 나열 밖은 agent 가 필요 시 직접).
+    이미 있으면 건드리지 않는다 — 최신화는 SessionStart hook(refresh-refs.py)의 몫."""
+    for repo in refs:
+        dest = os.path.join(REF, repo.split("/")[1])
+        if os.path.isdir(os.path.join(dest, ".git")):
+            print("-- ref: %s (있음 — 세션 시작 시 최신화됨)" % repo)
+            continue
+        os.makedirs(REF, exist_ok=True)
+        run(["git", "clone", "https://github.com/%s.git" % repo, dest])
+        print("-- ref: %s clone → workspace/ref/%s (읽기 전용)" % (repo, repo.split("/")[1]))
 
 
 # ── 2. Status 착수 전이 (Backlog·Todo → In Progress 만. 그 외는 §5 — 사람의 것) ──
@@ -250,9 +269,12 @@ def main():
 
     issue = load_ticket(n)
     print("== 티켓 #%s — %s" % (n, issue["title"]))
-    targets = parse_targets(issue["body"])
+    targets, refs = parse_repos(issue["body"])
     print("== target: %s" % ", ".join(targets))
+    if refs:
+        print("== ref: %s (비완전 목록 — 나열 밖 참조 허용)" % ", ".join(refs))
     transition_status(issue, n)
+    ensure_refs(refs)
 
     worst = 0
     for repo in targets:
