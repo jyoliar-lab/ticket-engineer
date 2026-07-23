@@ -90,6 +90,10 @@ def main():
         out_deny("workspace/ops-workflow 는 읽기 전용이다(정책·티켓 코퍼스). "
                  "남길 것이 있으면 파일이 아니라 gh 코멘트로(컨트롤 플레인).")
 
+    if under(fp, os.path.join(ws, ".bare")):
+        out_deny("workspace/.bare 는 도구(ticket-run.py)만 만진다 — "
+                 "작업은 티켓 worktree(workspace/<repo>/ticket-<N>/)에서 하라.")
+
     if under(fp, ws):
         allow()
 

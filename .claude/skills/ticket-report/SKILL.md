@@ -9,7 +9,7 @@ description: 티켓 완료 보고 절차 — preflight(PR·참조·close 키워�
 
 ## 절차
 
-1. **preflight** — `python3 "$CLAUDE_SKILL_DIR/scripts/preflight.py" <N> workspace/<repo>` — **target 저장소마다** 실행한다(PR이 여럿이면 각각).
+1. **preflight** — `python3 "$CLAUDE_SKILL_DIR/scripts/preflight.py" <N> workspace/<repo>/ticket-<N>` — **target 저장소마다** 그 worktree에서 실행한다(PR이 여럿이면 각각).
    - ① 현재 브랜치의 열린 PR ② 본문의 `jyoliar-lab/ops-workflow#<N>` 참조 ③ close 키워드 부재 ④ 게이트(체크) 통과 ⑤ 이 저장소가 티켓 target 목록에 있음 — 하나라도 실패면 **보고하지 않는다.** 해결 후 재실행.
    - ⑤가 실패하면 코드가 아니라 **티켓이 낡은 것**일 수 있다 — 작업 중 수정 범위가 늘었는데 target 목록을 갱신하지 않았다면, 사람과 합의해 목록부터 갱신한다(CLAUDE.md §3 — 갱신 필수).
 2. **대조표 초안** — 착수 때 추출한 **"완료의 모양" 각 항목별로**: 항목 | 충족 방식 | 근거(코드 위치·확인 방법). PR 링크 포함 — **target 저장소별로 전부**.
