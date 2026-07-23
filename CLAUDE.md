@@ -39,7 +39,12 @@
 **target 밖 저장소를 고쳐야 하게 될 때도 같다** — target 목록은 수정 권한의 경계이므로, 스스로 넓히지 않는다:
 
 1. 멈추고 사람에게 묻는다.
-2. 합의되면 **티켓의 target 목록을 먼저 갱신**한다 — 본문 '저장소' 절(`gh issue edit`)과 보드의 `Target Repos` 필드 둘 다. **갱신은 필수다** — 목록이 실제 수정 범위와 어긋난 채 남으면 보드의 저장소 질의가 거짓말을 한다.
+2. 합의되면 **티켓의 target 목록을 먼저 갱신**한다 — ops-workflow의 갱신 도구로:
+   ```bash
+   python3 workspace/ref/ops-workflow/.claude/skills/ticket/scripts/set-repos.py \
+     --issue <N> --target-repo <기존 전부> --target-repo <새 저장소> [--ref-repo ...]
+   ```
+   본문 '저장소' 절(YAML 블록)과 보드의 `Target Repos` 필드를 **한 번에 다시 쓴다**(target은 전체 목록을 다시 낸다 — 추가분만이 아니라). **블록을 `gh issue edit`로 손대지 않는다** — 파서(착수·보고 도구)가 형식 이탈을 거부한다. **갱신은 필수다** — 목록이 실제 수정 범위와 어긋난 채 남으면 보드의 저장소 질의가 거짓말을 한다.
 3. 그다음에 고친다.
 
 ref 목록의 갱신(참조한 저장소를 절에 반영)은 **권장**이지 의무가 아니다.

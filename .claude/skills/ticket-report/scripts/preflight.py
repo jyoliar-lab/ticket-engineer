@@ -15,9 +15,13 @@
 이 스크립트는 '완료의 모양' 충족을 판정하지 않는다 — 그것은 의미 판정이다.
 """
 import json
+import os
 import re
 import subprocess
 import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "_lib"))
+from repos import parse_section  # noqa: E402  ('저장소' 절 파서 — 표기 원본은 ops-workflow repo_context.py)
 
 FAIL_STATES = {"FAILURE", "ERROR", "CANCELLED", "TIMED_OUT",
                "ACTION_REQUIRED", "STARTUP_FAILURE", "STALE"}
@@ -58,15 +62,19 @@ def target_repo_check(n, cwd):
                 + (r.stderr.strip() or "gh issue view 실패"))
     body = json.loads(r.stdout).get("body") or ""
 
-    line = next((ln for ln in body.splitlines() if "수정 대상(target)" in ln), None)
-    if line is None:
+    try:
+        parsed = parse_section(body)
+    except ValueError as e:
+        return (False, f"⑤ 저장소: '저장소' 절의 표기를 읽을 수 없다 — {e} — 손으로 고치지 말고 "
+                "ops-workflow 의 set-repos.py 로 재기입한 뒤 다시.")
+    if parsed is None:
         return (True, "⑤ 저장소: 티켓에 '저장소' 절이 없다(절 도입 전 티켓) — 목록 대조 생략")
 
-    targets = [t.lower() for t in re.findall(r"`([^`\s]+/[^`\s]+)`", line)]
-    if here.lower() in targets:
+    targets, no_target, _refs = parsed
+    if here.lower() in (t.lower() for t in targets):
         return (True, f"⑤ 저장소: {here} — target 목록에 있음")
-    if not targets:
-        return (False, f"⑤ 저장소: target이 '(없음)'인데 {here} 에서 보고하려 한다 — "
+    if no_target:
+        return (False, f"⑤ 저장소: target이 부재 선언(null)인데 {here} 에서 보고하려 한다 — "
                 "저장소가 생겼으면 티켓의 target 목록을 먼저 갱신하라(사람과 합의, 갱신 필수).")
     return (False, f"⑤ 저장소: {here} 가 target 목록({', '.join(targets)})에 없다 — "
             "수정 범위가 늘었으면 티켓을 먼저 갱신하라(사람과 합의, 갱신 필수).")

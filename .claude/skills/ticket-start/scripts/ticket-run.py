@@ -32,6 +32,9 @@ from _common import (EXIT_APPROVAL, EXIT_HUMAN, EXIT_PROCEED, EXIT_REJECT,
                      OPS_REPO, REF_DIR, TARGET_DIR, Reject, block, gh_json,
                      rel, run, run_cli)
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "_lib"))
+from repos import parse_section  # noqa: E402  ('저장소' 절 파서 — 표기 원본은 ops-workflow repo_context.py)
+
 # 착수 전이: 이 상태에서만 In Progress 로 (§5 — 사람이 지시한 전이의 대행)
 START_STATUSES = ("Backlog", "Todo")
 IN_PROGRESS = "In Progress"
@@ -79,21 +82,20 @@ def load_ticket(n):
 
 
 def parse_repos(body):
-    """티켓 '저장소' 절 → (target 목록, ref 목록). target 은 필수, ref 는 비완전 힌트."""
-    lines = (body or "").splitlines()
-    target_line = next((ln for ln in lines if "수정 대상(target)" in ln), None)
-
-    if target_line is None:
-        raise Reject("거부: 티켓에 '저장소' 절이 없다(절 도입 전 구식 티켓) — 대상을 추측하지 않는다. 사람에게.")
-
-    targets = re.findall(r"`([^`\s]+/[^`\s]+)`", target_line)
-
-    if not targets:
-        raise Reject("거부: 수정 대상(target)이 '(없음)' — 신규 저장소 생성 등 대상이 아직 없는 작업이다.",
+    """티켓 '저장소' 절(YAML 블록) → (target 목록, ref 목록). target 은 필수, ref 는 비완전 힌트."""
+    try:
+        parsed = parse_section(body or "")
+    except ValueError as e:
+        raise Reject("거부: 티켓 '저장소' 절의 표기를 읽을 수 없다 — %s" % e,
+                     "  손으로 고치지 않는다(본문과 보드 필드가 갈라진다) —",
+                     "  ops-workflow 의 set-repos.py 로 재기입한 뒤 다시 시도하라.")
+    if parsed is None:
+        raise Reject("거부: 티켓에 '저장소' 절이 없다(절 도입 전 구식 티켓) — 대상을 추측하지 않는다.",
+                     "  ops-workflow 의 set-repos.py 로 소급 기입한 뒤 다시 시도하라. 사람에게.")
+    targets, no_target, refs = parsed
+    if no_target:
+        raise Reject("거부: 수정 대상(target)이 부재 선언(null) — 신규 저장소 생성 등 대상이 아직 없는 작업이다.",
                      "  저장소 이름·위치·생성 방식을 사람과 확인한 뒤 진행하라 (ticket-start ④).")
-
-    ref_line = next((ln for ln in lines if "참조(ref)" in ln), None)
-    refs = re.findall(r"`([^`\s]+/[^`\s]+)`", ref_line or "")
     return targets, [r for r in refs if r not in targets]
 
 
