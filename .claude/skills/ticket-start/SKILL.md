@@ -16,7 +16,7 @@ description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, "완
 3. **근거 읽기** — 티켓이 링크한 ADR·discussion을 `workspace/ref/ops-workflow/docs/`에서 읽는다. (ref 경로는 SessionStart hook가 세션 시작 시 최신화했다. 읽기 전용 — 저작 규약은 알 필요 없다.)
 4. **저장소 정렬** — 판단하지 말고 스크립트를 돌린다:
    ```bash
-   python3 "$CLAUDE_SKILL_DIR/scripts/ticket-run.py" <N> [--slug <slug>]
+   ticket-run.py <N> [--slug <slug>]
    ```
    착수(원격 브랜치 생성·Status 전환)와 재개(진행 보고·worktree 정렬)를 스크립트가 판별한다 — 원격이 진실의 원천이고, target 저장소마다 수행된다. **exit 코드가 다음 행동이다**:
 
@@ -36,7 +36,7 @@ description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, "완
 ## 뒷정리 — 사람이 close를 확인한 뒤에만
 
 ```bash
-python3 "$CLAUDE_SKILL_DIR/scripts/ticket-clean.py" <N>
+ticket-clean.py <N>
 ```
 worktree·브랜치(로컬·원격)를 정리한다. 티켓이 열려 있거나, 미커밋 변경이 있거나, PR이 열려 있으면 **스크립트가 거부한다** — 우회하지 않는다. 자동 실행 금지 — 사람의 지시가 트리거다.
 
