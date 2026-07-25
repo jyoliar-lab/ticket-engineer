@@ -11,8 +11,8 @@ Write/Edit/MultiEdit:
 
 Bash:
   거부 — `gh issue close`  (close는 사람의 것 — ops-workflow 규약)
-  거부 — `gh pr merge`     (머지는 사람의 것 — CLAUDE.md §2⑦)
-  검증 — `gh pr create`    (본문은 인라인·티켓 참조 필수·close 키워드 금지 — CLAUDE.md §2④)
+  거부 — `gh pr merge`     (머지는 사람의 것 — CLAUDE.md §2③)
+  검증 — `gh pr create`    (본문은 인라인·티켓 참조 필수·close 키워드 금지 — CLAUDE.md §2①)
 """
 import json
 import os
@@ -58,21 +58,21 @@ def main():
         cmd = tool_input.get("command", "") or ""
         if re.search(r"\bgh\s+issue\s+close\b", cmd):
             out_deny("Issue close는 사람의 것이다 — engineer는 완료 보고 코멘트까지만 남긴다"
-                     "(CLAUDE.md §2⑦). 검수·close는 사람이 한다.")
+                     "(CLAUDE.md §2③). 검수·close는 사람이 한다.")
         if re.search(r"\bgh\s+pr\s+merge\b", cmd):
             out_deny("PR 머지는 사람의 것이다 — engineer는 PR을 열고 보고까지만 한다"
-                     "(CLAUDE.md §2⑦).")
+                     "(CLAUDE.md §2③).")
         if re.search(r"\bgh\s+pr\s+create\b", cmd):
             if re.search(r"(--body-file\b|\s-F\s)", cmd):
                 out_deny("PR 본문은 --body 인라인으로 작성하라 — hook가 본문 규약"
-                         "(티켓 참조·close 키워드)을 검증해야 한다(CLAUDE.md §2④).")
+                         "(티켓 참조·close 키워드)을 검증해야 한다(CLAUDE.md §2①).")
             if re.search(r"\b(clos(?:e|es|ed)|fix(?:es|ed)?|resolv(?:e|es|ed))\b"
                          r"\s*:?\s+\S*#\d+", cmd, re.IGNORECASE):
-                out_deny("자동 close 키워드 금지 — PR 머지 ≠ 티켓 종료(CLAUDE.md §2④). "
+                out_deny("자동 close 키워드 금지 — PR 머지 ≠ 티켓 종료(CLAUDE.md §2①). "
                          "티켓 참조는 키워드 없이 남겨라.")
             if not re.search(r"jyoliar-lab/ops-workflow#\d+", cmd):
                 out_deny("PR 본문에 티켓 참조(jyoliar-lab/ops-workflow#<N>)가 없다 — "
-                         "브리지 규약(CLAUDE.md §2④).")
+                         "브리지 규약(CLAUDE.md §2①).")
         allow()
 
     if tool not in ("Write", "Edit", "MultiEdit"):

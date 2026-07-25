@@ -14,20 +14,21 @@
   - **`workspace/target/<repo>/ticket-<N>/`** — 티켓별 worktree = 작업 디렉터리. 동시 여러 티켓이 서로를 오염시키지 않는다.
   - **`workspace/target/.bare/<repo>.git`** — bare 저장소. **도구(`ticket-run.py`)만 만진다** — hook가 쓰기를 거부한다.
   - **`workspace/ref/<repo>`** — 참조 저장소, **전부 읽기 전용**(hook가 거부). 정책·티켓 코퍼스(`ref/ops-workflow`)도 여기 산다. SessionStart hook가 세션 시작 시 ref 전체를 최신화한다. ops-workflow에 남길 것(코멘트)은 파일이 아니라 `gh`로 컨트롤 플레인에.
-- 준비·정렬은 손 git이 아니라 **`ticket-run.py`가 한다**(`ticket-start` skill) — 원격 브랜치가 진실의 원천이고, exit 코드(0 진행 / 1 거부 / 2 제안 후 승인 / 3 보고만)가 다음 행동이다.
+- 준비·정렬은 손 git이 아니라 **`ticket-run.py`가 한다**(`ticket-start` skill) — 원격 브랜치가 진실의 원천이고, exit 코드가 다음 행동이다(표는 skill에).
 - 쓰기는 `workspace/` 와 `staging/`(§4 — 사람에게 넘길 제안·초안) 아래에서만 가능하다 — **guard hook가 강제**한다.
 
 ## 2. 티켓 흐름 — 사람이 지정한다
 
-착수(1–3)는 **`ticket-start`** skill, 완료 보고(6)는 **`ticket-report`** skill의 절차를 따른다.
+**사람이 티켓 번호를 지정**하는 것이 시작이다. 절차의 실질은 두 skill에 있다:
 
-1. **사람이 티켓 번호를 지정**한다. `gh issue view <N> -R jyoliar-lab/ops-workflow`로 읽는다.
-2. 티켓의 **Acceptance Criteria(검수 기준)와 Requirements(제약 — 범위 밖 축 포함)** 를 먼저 파악한다. 본문에 **'근거 ADR' 절**이 있으면 그 YAML의 `path`가 가리키는 문서를 `workspace/ref/ops-workflow/`에서 읽는다. 절이 없는 리프는 **Context가 "왜"의 전부다** — 티켓 밖에서 근거를 찾아 헤매지 않는다(discussion은 티켓에 링크되지 않는다).
-3. `ticket-run.py`로 target 전부의 브랜치·worktree를 정렬하고(§1 — 착수·재개를 스크립트가 판별하고, 티켓에 나열된 ref도 선제 clone한다), **티켓당 브랜치** `ticket/<N>-<slug>` 의 worktree에서 일한다. **열린 선행(blocked-by)이 있으면 스크립트가 착수를 거부한다** — 선행의 close(사람 검수)가 후행 착수의 전제다(ADR-0017). 우회하지 않는다. 나열 밖 참조가 더 필요하면 `workspace/ref/<repo>`에 직접 clone해서 읽는다(쓰기는 hook가 거부).
-4. **PR**: 본문에 `jyoliar-lab/ops-workflow#<N>` 참조를 남긴다(브리지 — 이슈 타임라인에 역링크가 생긴다). **`Closes`/`Fixes` 등 자동 close 키워드는 쓰지 않는다** — PR 머지 ≠ 티켓 종료.
-5. 대상 저장소에 **머지 게이트(required check)가 있으면 통과가 필수**다. 우회하지 않는다(admin merge·force 금지).
-6. **완료 보고**: 티켓 코멘트로, Acceptance Criteria **항목별 대조**를 남긴다 (무엇이 어떻게 충족됐고, PR은 어디인지).
-7. **머지와 Issue close는 사람의 것이다.** engineer는 PR을 열고 보고까지 한다 — 검수·머지·close는 사람이 한다.
+- **착수·재개** — **`ticket-start`** skill: 티켓·근거 문서 읽기 → 경계(Acceptance Criteria·Requirements) 추출 → `ticket-run.py`로 정렬 → 티켓별 worktree에서 작업.
+- **완료 보고** — **`ticket-report`** skill: preflight 기계 확인 → Acceptance Criteria 항목별 대조표 → 사용자 확인 → 티켓 코멘트 게시.
+
+두 skill 사이, 작업 중의 규약:
+
+1. **PR**: 본문에 `jyoliar-lab/ops-workflow#<N>` 참조를 남긴다(브리지 — 이슈 타임라인에 역링크가 생긴다). **`Closes`/`Fixes` 등 자동 close 키워드는 쓰지 않는다** — PR 머지 ≠ 티켓 종료.
+2. 대상 저장소에 **머지 게이트(required check)가 있으면 통과가 필수**다. 우회하지 않는다(admin merge·force 금지).
+3. **머지와 Issue close는 사람의 것이다.** engineer는 PR을 열고 보고까지 한다 — 검수·머지·close는 사람이 한다.
 
 ## 3. 범위 밖의 축 — 멈추고 묻는다
 
