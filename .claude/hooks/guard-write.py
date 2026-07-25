@@ -3,6 +3,7 @@
 
 Write/Edit/MultiEdit:
   허용 — workspace/target/**                    (티켓 worktree — 수정 권한의 경계)
+  허용 — staging/**                             (사람에게 넘길 제안·초안 — CLAUDE.md §4)
   거부 — workspace/ref/**                       (참조 저장소·정책 코퍼스 — 읽기 전용. ADR-0016의 ref)
   거부 — workspace/target/.bare/**              (bare 저장소 — 도구만 만진다)
   거부 — 그 외 전부. 특히 자기 하네스(CLAUDE.md·.claude/**)는
@@ -103,9 +104,13 @@ def main():
         out_deny("workspace 직속에는 쓰지 않는다 — 작업은 workspace/target/<repo>/ticket-<N>/, "
                  "참조는 workspace/ref/<repo>(읽기 전용)다.")
 
+    if under(fp, os.path.join(proj, "staging")):
+        allow()
+
     out_deny(
-        "쓰기 경계 위반: %s — engineer는 workspace/** 에서만 쓴다. "
-        "하네스(CLAUDE.md·.claude/**)는 agent가 고치지 않는다 — 사람에게 알려라(CLAUDE.md §4)." % fp
+        "쓰기 경계 위반: %s — engineer는 workspace/** 와 staging/** 에서만 쓴다. "
+        "하네스(CLAUDE.md·.claude/**)는 agent가 고치지 않는다 — "
+        "개정 제안은 staging/에 써서 사람에게 넘겨라(CLAUDE.md §4)." % fp
     )
 
 

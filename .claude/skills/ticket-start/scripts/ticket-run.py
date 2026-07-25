@@ -16,7 +16,7 @@
 
 exit 코드 = agent의 다음 행동 (프롬프트 해석에 기대지 않는다):
   0 = 진행하라 (케이스별 정보는 stdout — 읽고 판단·처리)
-  1 = 전제 거부 (티켓 닫힘·컨테이너·target 없음 등 — 우회 금지)
+  1 = 전제 거부 (티켓 닫힘·컨테이너·target 없음·열린 선행(ADR-0017) 등 — 우회 금지)
   2 = 승인 대기 — 상태를 파악해 처리 방안을 사람에게 제안하고, 승인 후 진행
   3 = 사람 개입 필요 — 처리를 시도하지 말고 보고만
 target 이 여럿이면 저장소마다 판정하고, 전체 exit 는 그중 가장 높은 코드다.
@@ -62,6 +62,7 @@ def load_ticket(n):
     data = graphql(
         "query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){issue(number:$n){"
         "state title body issueType{name} "
+        "blockedBy(first:50){nodes{number state title}} "
         "projectItems(first:10){nodes{id project{id number} "
         "fieldValueByName(name:\"Status\"){... on ProjectV2ItemFieldSingleSelectValue{name}}}}}}}",
         o=owner, r=name, n=int(n))
@@ -79,6 +80,41 @@ def load_ticket(n):
         raise Reject("거부: #%s 는 %s(컨테이너)다 — 집행 단위가 아니다. 리프(Task·Bug)를 지정하라." % (n, itype))
 
     return issue
+
+
+def current_status(issue):
+    """보드 Status 이름 (Project 미등록이면 None)."""
+    items = [it for it in issue["projectItems"]["nodes"] if it]
+    return (items[0].get("fieldValueByName") or {}).get("name") if items else None
+
+
+def check_dependencies(issue, n):
+    """착수 게이트 (ADR-0017) — 열린 선행(blocked-by) 위에는 착수하지 않는다.
+    새 착수: 전제 거부(exit 1). 재개(In Progress): 착수 후 추가된 의존 — 보고만(exit 3)."""
+    blockers = [b for b in (issue.get("blockedBy") or {}).get("nodes") or [] if b]
+
+    for b in blockers:
+        if b["state"] != "OPEN":
+            print("-- 선행 #%s close 확인 — %s" % (b["number"], b["title"]))
+
+    open_blockers = [b for b in blockers if b["state"] == "OPEN"]
+    if not open_blockers:
+        return
+
+    lines = ["   #%s %s" % (b["number"], b["title"]) for b in open_blockers]
+
+    if current_status(issue) == IN_PROGRESS:
+        raise Reject(
+            "!! 진행 중 티켓 #%s 에 열린 선행이 있다 — 착수 후 추가된 의존이다." % n,
+            *lines,
+            "   처리를 시도하지 말고 보고만 — 벌어진 작업의 처분은 사람의 판단이다 (ADR-0017).",
+            code=EXIT_HUMAN)
+
+    raise Reject(
+        "거부: 티켓 #%s 는 열린 선행에 막혀 있다 — 선행의 close(사람 검수) 전에는 착수하지 않는다." % n,
+        *lines,
+        "   선행이 close 된 뒤 다시 시도하라. 관계가 실제와 어긋났다고 보이면 사람에게 —",
+        "   갱신은 ops-workflow 의 set-deps.py 로 한다(사이드바 손편집 금지).")
 
 
 def parse_repos(body):
@@ -321,6 +357,7 @@ def main():
 
     issue = load_ticket(n)
     print("== 티켓 #%s — %s" % (n, issue["title"]))
+    check_dependencies(issue, n)   # 열린 선행 위에는 착수하지 않는다 (ADR-0017)
     targets, refs = parse_repos(issue["body"])
     print("== target: %s" % ", ".join(targets))
 
