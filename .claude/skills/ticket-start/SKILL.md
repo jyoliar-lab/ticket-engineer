@@ -1,6 +1,6 @@
 ---
 name: ticket-start
-description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, "완료의 모양"·"딸리지 않는 것" 추출, ticket-run.py로 원격 브랜치·로컬 worktree 정렬. 사람이 티켓 번호를 지정하면 코드를 만지기 전에 이 절차부터 밟는다.
+description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, Acceptance Criteria·Requirements 추출, ticket-run.py로 원격 브랜치·로컬 worktree 정렬. 사람이 티켓 번호를 지정하면 코드를 만지기 전에 이 절차부터 밟는다.
 ---
 
 # ticket-start — 착수·재개
@@ -11,9 +11,9 @@ description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, "완
 
 1. **티켓 읽기** — `gh issue view <N> -R jyoliar-lab/ops-workflow --comments`
 2. **경계 추출** — 티켓에서 두 절을 **그대로 옮겨 적는다**(요약하지 않는다):
-   - **완료의 모양** — 검수 기준이다. 그대로 `ticket-report`의 대조표 행이 된다.
-   - **딸리지 않는 것** — 의도적 미결정 축이다. 작업 중 이 축에 닿으면 **멈추고 사람에게**(CLAUDE.md §3).
-3. **근거 읽기** — 티켓이 링크한 ADR·discussion을 `workspace/ref/ops-workflow/docs/`에서 읽는다. (ref 경로는 SessionStart hook가 세션 시작 시 최신화했다. 읽기 전용 — 저작 규약은 알 필요 없다.)
+   - **Acceptance Criteria** — 검수 기준이다. 그대로 `ticket-report`의 대조표 행이 된다.
+   - **Requirements** — 지켜야 할 제약과 **의도적 미결정 축**("~은 범위 밖이다" 항목들)이다. 작업 중 그 축에 닿으면 **멈추고 사람에게**(CLAUDE.md §3). ("없음"이면 그대로 기록한다 — 빈칸과 다르다.)
+3. **근거 읽기** — 본문 **'근거 ADR' 절**(YAML의 `path`)이 가리키는 문서를 `workspace/ref/ops-workflow/`에서 읽는다. 절이 없는 리프는 **Context가 "왜"의 전부다** — discussion은 티켓에 링크되지 않는다. (ref 경로는 SessionStart hook가 세션 시작 시 최신화했다. 읽기 전용 — 저작 규약은 알 필요 없다.)
 4. **저장소 정렬** — 판단하지 말고 스크립트를 돌린다:
    ```bash
    ticket-run.py <N> [--slug <slug>]
