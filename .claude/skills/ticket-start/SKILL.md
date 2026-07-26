@@ -9,7 +9,7 @@ description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, Acce
 
 ## 절차
 
-1. **티켓 읽기** — `gh issue view <N> -R jyoliar-lab/ops-workflow --comments`
+1. **티켓 읽기** — `gh issue view <N> -R jyoliar-lab/ops-workflow --json title,body,comments` — **`--json`으로 읽는다.** 사람용 기본 출력은 간헐적으로 exit 0인 채 빈 stdout을 낸다(pager/tty 상호작용 추정) — 빈 출력을 "코멘트 없음"으로 오판하지 말고 `--json`으로 읽는다.
 2. **경계 추출** — 티켓에서 두 절을 **그대로 옮겨 적는다**(요약하지 않는다):
    - **Acceptance Criteria** — 검수 기준이다. 그대로 `ticket-report`의 대조표 행이 된다.
    - **Requirements** — 지켜야 할 제약과 **의도적 미결정 축**("~은 범위 밖이다" 항목들)이다. 작업 중 그 축에 닿으면 **멈추고 사람에게**(CLAUDE.md §3). ("없음"이면 그대로 기록한다 — 빈칸과 다르다.)
@@ -29,8 +29,8 @@ description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, Acce
 
    - `--slug`는 새 착수에만 필요하다(소문자 kebab 3–6단어).
    - **열린 선행(blocked-by)이 있으면 착수가 거부된다**(exit 1) — 선행의 close(사람 검수)가 전제다(ADR-0017). 선행 close 후 다시 시도한다. **진행 중** 티켓에 열린 선행이 나타나면 exit 3 — 착수 후 추가된 의존이니 처리하지 말고 보고만.
-   - target이 **부재 선언**(`null` — 신규 저장소 생성 작업)이면 exit 1 — 저장소 이름·위치·생성 방식을 **사람과 확인**한 뒤 진행한다.
-   - '저장소' 절이 없거나(절 도입 전 티켓) 표기를 읽을 수 없으면(구식 산문·손상) exit 1 — **추측하지 않는다.** ops-workflow의 `set-repos.py`로 기입·재기입한 뒤(CLAUDE.md §3) 다시 돌린다.
+   - target이 **부재 선언**(`null` — 신규 저장소 생성 작업)이면 exit 1 — 절차: ① 이름·위치(조직)·공개 여부를 **사람과 확인** ② 합의되면 **engineer가 `gh repo create`로 생성** ③ ops-workflow의 `set-repos.py --target-repo`로 target 재기입(CLAUDE.md §3) ④ `ticket-run.py` 재실행.
+   - '저장소' 절이 없거나(절 도입 전 티켓) 표기를 읽을 수 없으면(구식 산문·손상) exit 1 — **추측하지 않는다.** ops-workflow의 `set-repos.py`로 기입·재기입한 뒤(CLAUDE.md §3) 다시 돌린다. 소급 기입할 저장소는 **넓게 탐색해 특정한다**: `gh org list`로 접근 가능한 조직을 전부 확인하고, 조직·개인 계정별로 `gh repo list <owner>`·`gh search repos`로 찾는다 — 한두 owner만 보고 "없다 → 신규 생성"으로 판단하지 않는다. 그래도 단서가 없으면 추측하지 말고 사람에게 묻는다.
    - 파괴적 정리(`reset --hard`·`stash drop`·강제 checkout)는 exit가 무엇이든 **하지 않는다.**
 5. **작업 위치** — `workspace/target/<repo>/ticket-<N>/` (티켓별 worktree). 다른 티켓의 worktree·`workspace/target/.bare/`는 건드리지 않는다. 티켓에 나열된 ref는 ticket-run이 `workspace/ref/<repo>`에 **선제 clone해 뒀다** — ref는 비완전 목록이므로, 나열 밖 저장소가 더 필요하면 같은 경로에 직접 clone한다. ref는 **읽기만** — hook가 쓰기를 거부한다.
 6. **착수 요약** — 경계 2절 + 스크립트가 보인 상태 + 이해한 작업 계획을 사용자에게 보인다. 계획이 티켓과 어긋날 소지가 보이면 진행 전에 묻는다.

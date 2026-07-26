@@ -86,6 +86,11 @@ def main():
         sys.exit(2)
     n = sys.argv[1]
     cwd = sys.argv[2] if len(sys.argv) > 2 else "."
+    if not os.path.isdir(cwd):
+        print(f"✘ worktree 경로가 없다: {cwd}")
+        print("  경로 인자는 하네스 루트 기준이다 — 하네스 루트에서 실행했는가? "
+              "(worktree 안이 cwd이면 상대 경로가 어긋난다)")
+        sys.exit(2)
 
     r = subprocess.run(
         ["gh", "pr", "view", "--json", "url,state,title,body,statusCheckRollup"],
