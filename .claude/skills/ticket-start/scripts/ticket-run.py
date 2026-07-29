@@ -7,8 +7,8 @@
 원격이 진실의 원천이다:
   - 착수 판별 = 원격에 ticket/<N>-* 브랜치가 있는가. 로컬 상태는 판별·기점에 영향 없음.
   - 새 브랜치는 원격 기본 브랜치 HEAD 기준으로 "원격에", 티켓 이슈의 linked branch 로
-    생성된다(Development 필드 연결). 단 이슈와 같은 저장소가 target 이면 비연결 생성 —
-    linked PR 머지의 자동 close 를 피한다(close 는 사람의 것).
+    생성된다(Development 필드 연결). linked PR 머지의 자동 close 는 코드가 아니라
+    이슈 저장소 설정 해제로 막는다(CLAUDE.md 수동 불변식 — close 는 사람의 것).
 로컬은 티켓별 worktree다 (동시 여러 티켓 안전 — 공유 HEAD 없음):
   workspace/target/.bare/<repo>.git      ← bare 저장소. 도구만 만진다 (hook가 Write 거부)
   workspace/target/<repo>/ticket-<N>/    ← 티켓 worktree = 작업 디렉터리
@@ -215,16 +215,8 @@ def remote_branch(repo, n, slug):
     default = gh_json("api", "repos/%s" % repo)["default_branch"]
     branch = "ticket/%s-%s" % (n, slug)
 
-    if repo == OPS_REPO:
-        # 이슈와 같은 저장소에는 linked branch 를 만들지 않는다 — 같은 repo 의 linked PR 이
-        # 기본 브랜치에 머지되면 이슈가 자동 close 된다. close 는 사람의 것이다.
-        sha = gh_json("api", "repos/%s/git/ref/heads/%s" % (repo, default))["object"]["sha"]
-        run(["gh", "api", "-X", "POST", "repos/%s/git/refs" % repo,
-             "-f", "ref=refs/heads/%s" % branch, "-f", "sha=%s" % sha])
-        print("== 착수: 원격 브랜치 생성 %s @ %s (기점: origin/%s %s · 비연결 — 자동 close 차단)"
-              % (branch, repo, default, sha[:7]))
-        return branch, True
-
+    # linked PR 머지의 자동 close 는 이슈 저장소(ops-workflow)의 설정
+    # "Auto-close issues with merged linked pull requests" 해제로 막는다 — 코드 가드 없음.
     run(["gh", "issue", "develop", "%s" % n, "-R", OPS_REPO,
          "--branch-repo", repo, "--name", branch, "--base", default])
     sha = gh_json("api", "repos/%s/git/ref/heads/%s" % (repo, branch))["object"]["sha"]
