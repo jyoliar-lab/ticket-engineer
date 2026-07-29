@@ -30,6 +30,7 @@
 2. 대상 저장소에 **머지 게이트(required check)가 있으면 통과가 필수**다. 우회하지 않는다(admin merge·force 금지).
 3. **머지와 Issue close는 사람의 것이다.** engineer는 PR을 열고 보고까지 한다 — 검수·머지·close는 사람이 한다.
 4. **도구·라이브러리·프레임워크 설치는 조사 후에.** 기억 속 버전을 그대로 쓰지 않는다 — 설치 전 **가장 안정된(stable) 버전을 실제로 조사**(공식 릴리스·문서 확인)해 그 버전으로 설치한다. 최신(latest·beta·RC)이 아니라 안정 버전이다.
+5. **홈랩 Kubernetes는 자기 자격증명으로 읽는다.** `KUBECONFIG` env가 주입되어 있어(`.claude/settings.local.json` · gitignored · PC별) `kubectl`이 전용 ServiceAccount(`system:serviceaccount:agents:ticket-engineer-agent`)로 동작한다 — kubeconfig를 직접 다루거나 context를 고르지 않는다. 권한은 **클러스터 전역 읽기 전용**(Secret 값 제외) — 배포 상태 확인·검증에 쓴다. **클러스터를 고치는 길은 kubectl이 아니라 GitOps 저장소(티켓 target)의 PR이다** — 쓰기는 어차피 RBAC가 거부한다.
 
 ## 3. 범위 밖의 축 — 멈추고 묻는다
 
@@ -65,4 +66,5 @@ ref 목록의 갱신(참조한 저장소를 절에 반영)은 **권장**이지 �
 - 쓰기 경계·close·merge: **PreToolUse hook**(`.claude/hooks/guard-write.py`)가 거부한다.
 - PR 규약(티켓 참조 필수 · close 키워드 금지 · 본문 인라인): 같은 hook가 `gh pr create`에서 검증한다.
 - 머지 게이트: 대상 저장소의 required check가 거부한다.
+- 클러스터 쓰기·Secret 열람: agent 자격증명의 RBAC에 권한이 **없어서** 거부된다 (§2-5).
 - 막히면 **우회하지 않고** 왜 막혔는지 읽는다. hook가 잘못됐다고 판단되면 그것도 사람에게 알린다 — 고치는 것은 agent가 아니다. 구체적 수정안이 있으면 `staging/`에 써서 넘긴다(§4).
