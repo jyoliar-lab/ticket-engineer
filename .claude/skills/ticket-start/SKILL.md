@@ -18,7 +18,7 @@ description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, Acce
    ```bash
    ticket-run.py <N> [--slug <slug>]
    ```
-   착수(원격 브랜치 생성·Status 전환)와 재개(진행 보고·worktree 정렬)를 스크립트가 판별한다 — 원격이 진실의 원천이고, target 저장소마다 수행된다. **exit 코드가 다음 행동이다**:
+   착수(원격 브랜치 생성 — 이슈 Development 필드에 연결되는 linked branch · Status 전환)와 재개(진행 보고·worktree 정렬)를 스크립트가 판별한다 — 원격이 진실의 원천이고, target 저장소마다 수행된다. **exit 코드가 다음 행동이다**:
 
    | exit | 뜻 | 네가 할 일 |
    |---|---|---|
