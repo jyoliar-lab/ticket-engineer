@@ -14,15 +14,15 @@
   - **`workspace/target/<repo>/ticket-<N>/`** — 티켓별 worktree = 작업 디렉터리. 동시 여러 티켓이 서로를 오염시키지 않는다.
   - **`workspace/target/.bare/<repo>.git`** — bare 저장소. **도구(`ticket-run.py`)만 만진다** — hook가 쓰기를 거부한다.
   - **`workspace/ref/<repo>`** — 참조 저장소, **전부 읽기 전용**(hook가 거부). 정책·티켓 코퍼스(`ref/ops-workflow`)도 여기 산다. SessionStart hook가 세션 시작 시 ref 전체를 최신화한다. ops-workflow에 남길 것(코멘트)은 파일이 아니라 `gh`로 컨트롤 플레인에.
-- 준비·정렬은 손 git이 아니라 **`ticket-run.py`가 한다**(`ticket-start` skill) — 원격 브랜치가 진실의 원천이고, exit 코드가 다음 행동이다(표는 skill에).
+- 준비·정렬은 손 git이 아니라 **`ticket-run.py`가 한다**(`ticket-start` skill) — 원격 브랜치가 진실의 원천이고, exit 코드가 다음 행동이다.
 - 쓰기는 `workspace/` 와 `staging/`(§4 — 사람에게 넘길 제안·초안) 아래에서만 가능하다 — **guard hook가 강제**한다.
 
 ## 2. 티켓 흐름 — 사람이 지정한다
 
 **사람이 티켓 번호를 지정**하는 것이 시작이다. 절차의 실질은 두 skill에 있다:
 
-- **착수·재개** — **`ticket-start`** skill: 티켓·근거 문서 읽기 → 경계(Acceptance Criteria·Requirements) 추출 → `ticket-run.py`로 정렬 → 티켓별 worktree에서 작업.
-- **완료 보고** — **`ticket-report`** skill: preflight 기계 확인 → Acceptance Criteria 항목별 대조표 → 사용자 확인 → 티켓 코멘트 게시.
+- **착수·재개** — **`ticket-start`** skill: 티켓·근거 문서를 읽고 경계(Acceptance Criteria·Requirements)를 추출한 뒤, 티켓별 worktree를 정렬해 작업을 시작한다.
+- **완료 보고** — **`ticket-report`** skill: 기계 확인을 통과한 뒤 Acceptance Criteria 항목별 대조를 티켓 코멘트로 게시한다.
 
 두 skill 사이, 작업 중의 규약:
 
@@ -68,3 +68,5 @@ ref 목록의 갱신(참조한 저장소를 절에 반영)은 **권장**이지 �
 - 머지 게이트: 대상 저장소의 required check가 거부한다.
 - 클러스터 쓰기·Secret 열람: agent 자격증명의 RBAC에 권한이 **없어서** 거부된다 (§2-5).
 - 막히면 **우회하지 않고** 왜 막혔는지 읽는다. hook가 잘못됐다고 판단되면 그것도 사람에게 알린다 — 고치는 것은 agent가 아니다. 구체적 수정안이 있으면 `staging/`에 써서 넘긴다(§4).
+
+★ **강제 지점이 그 자리에서 말하므로, 프롬프트는 그것을 미리 설명하지 않는다.** 거부 사유와 다음 행동은 스크립트·hook가 실제 값과 함께 낸다 — 통과 조건을 문서에 옮겨 적으면 원천이 둘이 되고, 한쪽만 고쳐져 어긋난다. 프롬프트가 미리 말할 것은 **금지**(모르면 시도한다)와 **트리거**(모르면 부르지 않는다), 그리고 **성공했을 때 할 일**(그 경로에서 스크립트는 침묵한다)뿐이다.

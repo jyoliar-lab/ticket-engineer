@@ -133,7 +133,10 @@ def parse_repos(body):
     targets, no_target, refs = parsed
     if no_target:
         raise Reject("거부: 수정 대상(target)이 부재 선언(null) — 신규 저장소 생성 등 대상이 아직 없는 작업이다.",
-                     "  저장소 이름·위치·생성 방식을 사람과 확인한 뒤 진행하라 (ticket-start ④).")
+                     "  ① 이름·위치(조직)·공개 여부를 사람과 확인한다 (추측하지 않는다)",
+                     "  ② 합의되면 gh repo create 로 생성한다",
+                     "  ③ ops-workflow 의 set-repos.py --target-repo 로 티켓의 target 을 재기입한다",
+                     "  ④ 이 도구를 다시 실행한다.")
     return targets, [r for r in refs if r not in targets]
 
 
