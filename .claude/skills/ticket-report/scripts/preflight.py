@@ -3,7 +3,9 @@
 
 사용: preflight.py <ticket-number> [target-repo-dir=.]
 
-  ① 현재 브랜치에 열린 PR이 있다
+  ① 현재 브랜치의 PR이 열려 있거나 머지됐다 (머지 후 보고는 정상 순서 — gitops처럼
+     배포 뒤에야 검증되는 티켓. 머지됨이면 HEAD가 머지된 head와 같은지도 본다 —
+     머지 뒤 커밋은 기본 브랜치에 없다. CLOSED는 실패)
   ② PR 본문에 jyoliar-lab/ops-workflow#<N> 참조가 있다 (브리지)
   ③ 자동 close 키워드가 없다 (PR 머지 ≠ 티켓 종료)
   ④ 체크가 실패·진행 중이 아니다 (머지 게이트)
@@ -43,6 +45,30 @@ def report(results):
 
 def check_state(c):
     return (c.get("conclusion") or c.get("state") or c.get("status") or "").upper()
+
+
+def pr_state_check(pr, cwd):
+    """① PR 상태. OPEN 통과 · MERGED는 HEAD 일치 조건부 통과 · 그 외 실패."""
+    state = pr.get("state")
+    where = f"① PR: {pr.get('url')} (state={state}"
+
+    if state == "OPEN":
+        return (True, where + ")")
+    if state != "MERGED":
+        return (False, where + ") — 머지 없이 닫힌 PR로는 보고하지 않는다")
+
+    r = subprocess.run(["git", "rev-parse", "HEAD"],
+                       cwd=cwd, capture_output=True, text=True)
+    if r.returncode != 0:
+        return (False, where + ") — worktree의 HEAD를 읽지 못했다 — "
+                + (r.stderr.strip() or "git rev-parse 실패"))
+
+    head, merged_head = r.stdout.strip(), pr.get("headRefOid")
+    if head == merged_head:
+        return (True, where + " — 머지 완료)")
+    return (False, where + f") — 머지 후 브랜치에 커밋이 더 있다 "
+            f"(HEAD {head[:7]} ≠ 머지된 head {(merged_head or '?')[:7]}) — "
+            "그 변경은 기본 브랜치에 없다. 새 PR로 올려 머지받은 뒤 다시.")
 
 
 def target_repo_check(n, cwd):
@@ -93,7 +119,8 @@ def main():
         sys.exit(2)
 
     r = subprocess.run(
-        ["gh", "pr", "view", "--json", "url,state,title,body,statusCheckRollup"],
+        ["gh", "pr", "view", "--json",
+         "url,state,title,body,headRefOid,statusCheckRollup"],
         cwd=cwd, capture_output=True, text=True)
     if r.returncode != 0:
         report([(False, "① PR: 현재 브랜치의 PR을 찾지 못했다 — "
@@ -101,8 +128,7 @@ def main():
 
     pr = json.loads(r.stdout)
     results = []
-    results.append((pr.get("state") == "OPEN",
-                    f"① PR: {pr.get('url')} (state={pr.get('state')})"))
+    results.append(pr_state_check(pr, cwd))
 
     body = pr.get("body") or ""
     title = pr.get("title") or ""
