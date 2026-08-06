@@ -21,7 +21,7 @@
 
 **사람이 티켓 번호를 지정**하는 것이 시작이다. 절차의 실질은 두 skill에 있다:
 
-- **착수·재개** — **`ticket-start`** skill: 티켓·근거 문서를 읽고 경계(Acceptance Criteria·Requirements)를 추출한 뒤, 티켓별 worktree를 정렬해 작업을 시작한다.
+- **착수·재개** — **`ticket-start`** skill: 티켓·근거 문서를 읽고 경계(Acceptance Criteria·Requirements)를 추출한 뒤, 티켓별 worktree를 정렬해 작업을 시작한다. 착수에는 게이트가 있다(계층 전체의 근거 ADR accepted + 비Draft) — 거부되면 우회하지 않고 사람에게.
 - **완료 보고** — **`ticket-report`** skill: 기계 확인을 통과한 뒤 Acceptance Criteria 항목별 대조를 티켓 코멘트로 게시한다.
 
 두 skill 사이, 작업 중의 규약:

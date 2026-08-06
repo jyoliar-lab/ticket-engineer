@@ -16,9 +16,16 @@
                                             이 도구가 선제 clone 한다. ref 는 비완전 목록이라
                                             나열 밖 저장소는 agent 가 필요 시 직접 clone.
 
+착수 게이트: 착수 전이 직전에 **계층 전체**(리프 + 부모 컨테이너들)를 검사한다 —
+근거 ADR 전부 accepted("결정이 굳었는가" — 발행은 공표만 요구했다) + Status 전부
+Todo/In Progress("사람이 확신했는가" — Draft 해제는 사람). 두 조건은 독립이다.
+통과 시 Todo 에 머문 부모는 In Progress 로 파생 전이된다(리프의 착수는 묶음의 착수).
+게이트와 전이가 한 스크립트에 있으므로 전이가 게이트를 건너뛸 수 없다.
+
 exit 코드 = agent의 다음 행동 (프롬프트 해석에 기대지 않는다):
   0 = 진행하라 (케이스별 정보는 stdout — 읽고 판단·처리)
-  1 = 전제 거부 (티켓 닫힘·컨테이너·target 없음·열린 선행(ADR-0017) 등 — 우회 금지)
+  1 = 전제 거부 (티켓 닫힘·컨테이너·target 없음·열린 선행(ADR-0017)·착수 게이트(계층의
+      미accept 근거·Draft 등) — 우회 금지)
   2 = 승인 대기 — 상태를 파악해 처리 방안을 사람에게 제안하고, 승인 후 진행
   3 = 사람 개입 필요 — 처리를 시도하지 말고 보고만
 target 이 여럿이면 저장소마다 판정하고, 전체 exit 는 그중 가장 높은 코드다.
@@ -35,11 +42,14 @@ from _common import (EXIT_APPROVAL, EXIT_HUMAN, EXIT_PROCEED, EXIT_REJECT,
                      rel, run, run_cli)
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "_lib"))
+import adrs  # noqa: E402  ('근거 ADR' 절 쌍둥이 파서 + 코퍼스 status 조회 — 원본은 ops-workflow adr_context.py)
 from repos import parse_section  # noqa: E402  ('저장소' 절 파서 — 표기 원본은 ops-workflow repo_context.py)
 
-# 착수 전이: 이 상태에서만 In Progress 로 (§5 — 사람이 지시한 전이의 대행)
-START_STATUSES = ("Backlog", "Todo")
+# 착수 전이: 이 상태에서만 In Progress 로 (§5 — 사람이 지시한 전이의 대행).
+# Draft 는 확신 전이라 착수 대상이 아니다 — 해제(→ Todo)는 사람의 판정이다 (ADR-0033).
+START_STATUSES = ("Todo",)
 IN_PROGRESS = "In Progress"
+GATE_OK_STATUSES = ("Todo", IN_PROGRESS)   # 착수 게이트가 계층 전체에 요구하는 Status
 CONTAINER_TYPES = ("Epic", "Feature")
 
 
@@ -58,20 +68,29 @@ def graphql(query, **variables):
 
 # ── 1. 티켓 로드·전제 검증 ───────────────────────────────────────────────────
 
-def load_ticket(n):
-    """열린 리프 티켓만 통과한다 — 닫힘·컨테이너는 전제 거부."""
+_ISSUE_QUERY = (
+    "query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){issue(number:$n){"
+    "number state title body issueType{name} parent{number} "
+    "blockedBy(first:50){nodes{number state title}} "
+    "projectItems(first:10){nodes{id project{id number} "
+    "fieldValueByName(name:\"Status\"){... on ProjectV2ItemFieldSingleSelectValue{name}}}}}}}")
+
+
+def fetch_issue(n):
+    """이슈 하나를 계층·게이트 판정에 필요한 필드째 읽는다 (리프·부모 공용)."""
     owner, _, name = OPS_REPO.partition("/")
-    data = graphql(
-        "query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){issue(number:$n){"
-        "state title body issueType{name} "
-        "blockedBy(first:50){nodes{number state title}} "
-        "projectItems(first:10){nodes{id project{id number} "
-        "fieldValueByName(name:\"Status\"){... on ProjectV2ItemFieldSingleSelectValue{name}}}}}}}",
-        o=owner, r=name, n=int(n))
+    data = graphql(_ISSUE_QUERY, o=owner, r=name, n=int(n))
     issue = (data.get("repository") or {}).get("issue")
 
     if not issue:
         raise Reject("거부: %s#%s 티켓을 찾지 못했다." % (OPS_REPO, n))
+
+    return issue
+
+
+def load_ticket(n):
+    """열린 리프 티켓만 통과한다 — 닫힘·컨테이너는 전제 거부."""
+    issue = fetch_issue(n)
 
     if issue["state"] != "OPEN":
         raise Reject("거부: 티켓 #%s 는 닫혀 있다(%s) — 닫힌 티켓은 집행하지 않는다. 사람에게." % (n, issue["state"]))
@@ -88,6 +107,86 @@ def current_status(issue):
     """보드 Status 이름 (Project 미등록이면 None)."""
     items = [it for it in issue["projectItems"]["nodes"] if it]
     return (items[0].get("fieldValueByName") or {}).get("name") if items else None
+
+
+def load_ancestors(issue):
+    """부모 계층을 리프에서 위로 걷는다 → [부모, 조부모, ...]. 계층은 3층이라 짧다."""
+    chain, seen = [], {issue.get("number")}
+    cur = issue
+
+    while True:
+        num = (cur.get("parent") or {}).get("number")
+
+        if not num or num in seen:
+            return chain
+
+        seen.add(num)
+        cur = fetch_issue(num)
+        chain.append(cur)
+
+
+def check_start_gate(issue, ancestors, n):
+    """착수 게이트 — 두 독립 조건을 **계층 전체**(자신 + 부모들)에 요구한다:
+      ① 근거 ADR 전부 accepted — "결정이 굳었는가" (기계 판정. 발행 게이트는 공표만 요구했다)
+      ② Status 전부 Todo·In Progress — "사람이 확신했는가" (Draft 해제는 사람의 판정)
+    리프는 부모의 근거를 되풀이하지 않으므로(사본은 낡는다) 여기서 거슬러 올라 모아야
+    Epic 의 근거까지 게이트된다. 부모가 In Review·Done 이어도 거부한다 — 그 밑에 착수할
+    리프가 남았다는 것은 사람의 전이 실수 신호다. 되돌림은 사람이 한다(도구는 대신하지 않는다).
+    재개(리프가 이미 In Progress)에서 걸리면 보고만(exit 3) — 착수 후 바뀐 전제(supersede 등)다.
+    """
+    corpus = os.path.join(REF_DIR, OPS_REPO.split("/")[1])
+    problems = []
+
+    seen_adrs = set()
+    for lvl in [issue] + ancestors:
+        try:
+            entries = adrs.parse_section(lvl.get("body") or "")
+        except ValueError as e:
+            raise Reject(
+                "거부: #%s 의 '근거 ADR' 절 표기를 읽을 수 없다 — %s" % (lvl["number"], e),
+                "  손으로 고치지 않는다 — ops-workflow 의 set-adr.py 로 재기입한 뒤 다시 시도하라.")
+
+        for adr_id, path, _sha in entries or []:
+            if adr_id in seen_adrs:
+                continue
+
+            seen_adrs.add(adr_id)
+            status = adrs.adr_status(corpus, adr_id, path)
+
+            if status is None:
+                problems.append("   #%s 근거 %s — 코퍼스(ref 사본)에서 찾지 못했다"
+                                % (lvl["number"], adr_id))
+            elif status != "accepted":
+                problems.append("   #%s 근거 %s — status '%s' (accepted 아님)"
+                                % (lvl["number"], adr_id, status))
+
+    for a in ancestors:
+        status = current_status(a)
+
+        if status is None:
+            problems.append("   부모 #%s — Project 미등록 (Status 를 판정할 수 없다 — 사람에게)"
+                            % a["number"])
+        elif status not in GATE_OK_STATUSES:
+            problems.append("   부모 #%s — Status '%s'" % (a["number"], status))
+
+    if not problems:
+        return
+
+    if current_status(issue) == IN_PROGRESS:
+        raise Reject(
+            "!! 진행 중 티켓 #%s 의 착수 전제가 무너져 있다 — 착수 후 바뀐 전제다." % n,
+            *problems,
+            "   처리를 시도하지 말고 보고만 — 벌어진 작업의 처분은 사람의 판단이다.",
+            code=EXIT_HUMAN)
+
+    raise Reject(
+        "거부: 티켓 #%s 는 착수 전제가 갖춰지지 않았다 — 착수는 계층 전체에 요구한다:" % n,
+        "   ① 근거 ADR(자신+부모) 전부 accepted — 결정이 굳었는가",
+        "   ② 자신·부모 Status 전부 Todo·In Progress — 사람이 확신했는가",
+        *problems,
+        "   accept(결정을 굳힌다)·Draft 해제(확신 판정)·In Review/Done 부모의 되돌림은",
+        "   전부 사람의 일이다 — 우회하지 않고 보고하라.",
+        "   (근거 ADR status 는 세션 시작 시점의 ref 사본 기준 — 방금 accept 됐다면 새 세션에서.)")
 
 
 def check_dependencies(issue, n):
@@ -142,6 +241,28 @@ def parse_repos(body):
 
 # ── 2. Status 착수 전이 ──────────────────────────────────────────────────────
 
+def _set_status(item, to_name):
+    """Project item 의 Status 를 to_name 으로 (옵션 id 조회 포함). → 성공 여부."""
+    proj = graphql(
+        "query($id:ID!){node(id:$id){... on ProjectV2{fields(first:30){nodes{"
+        "... on ProjectV2SingleSelectField{id name options{id name}}}}}}}",
+        id=item["project"]["id"])
+    fields = [f for f in proj["node"]["fields"]["nodes"] if f and f.get("name") == "Status"]
+    option = next((o for f in fields for o in f["options"] if o["name"] == to_name), None)
+
+    if not option:
+        print("!! Status 필드/'%s' 옵션을 찾지 못했다 — 전이 생략. 사람에게 알려라." % to_name,
+              file=sys.stderr)
+        return False
+
+    graphql(
+        "mutation($p:ID!,$i:ID!,$f:ID!,$v:String!){updateProjectV2ItemFieldValue("
+        "input:{projectId:$p,itemId:$i,fieldId:$f,value:{singleSelectOptionId:$v}})"
+        "{projectV2Item{id}}}",
+        p=item["project"]["id"], i=item["id"], f=fields[0]["id"], v=option["id"])
+    return True
+
+
 def transition_status(issue, n):
     items = [it for it in issue["projectItems"]["nodes"] if it]
 
@@ -159,26 +280,31 @@ def transition_status(issue, n):
     if status not in START_STATUSES:
         raise Reject("거부: 티켓 #%s 의 Status가 '%s' — 착수 전이는 %s 에서만 한다."
                      % (n, status, "·".join(START_STATUSES)),
-                     "  보드 오배치일 수 있다 — 판정은 사람에게.")
+                     "  Draft 면 확신 판정(해제 → Todo)이 먼저다 — 그 판정은 사람의 것이다.",
+                     "  보드 오배치일 수도 있다 — 어느 쪽이든 판정은 사람에게.")
 
-    proj = graphql(
-        "query($id:ID!){node(id:$id){... on ProjectV2{fields(first:30){nodes{"
-        "... on ProjectV2SingleSelectField{id name options{id name}}}}}}}",
-        id=item["project"]["id"])
-    fields = [f for f in proj["node"]["fields"]["nodes"] if f and f.get("name") == "Status"]
-    option = next((o for f in fields for o in f["options"] if o["name"] == IN_PROGRESS), None)
+    if _set_status(item, IN_PROGRESS):
+        print("-- Status: %s → %s (착수 — 사람이 지시한 전이의 대행)" % (status, IN_PROGRESS))
 
-    if not option:
-        print("!! Status 필드/'%s' 옵션을 찾지 못했다 — 전이 생략. 사람에게 알려라." % IN_PROGRESS,
-              file=sys.stderr)
-        return
 
-    graphql(
-        "mutation($p:ID!,$i:ID!,$f:ID!,$v:String!){updateProjectV2ItemFieldValue("
-        "input:{projectId:$p,itemId:$i,fieldId:$f,value:{singleSelectOptionId:$v}})"
-        "{projectV2Item{id}}}",
-        p=item["project"]["id"], i=item["id"], f=fields[0]["id"], v=option["id"])
-    print("-- Status: %s → %s (착수 — 사람이 지시한 전이의 대행)" % (status, IN_PROGRESS))
+def transition_parents(ancestors):
+    """Todo 에 머문 부모를 In Progress 로 — 리프의 착수는 곧 그 묶음의 착수다.
+    사람이 지시한 리프 착수의 **파생 전이**다("Status 는 사람의 것" 규범과 충돌하지 않는다).
+    방향은 착수(Todo → In Progress)뿐 — 되돌림(In Review·Done → …)은 도구가 대신하지 않는다."""
+    for a in ancestors:
+        items = [it for it in a["projectItems"]["nodes"] if it]
+
+        if not items:
+            continue                    # 미등록은 게이트가 이미 거부했다 — 방어적 생략
+
+        item = items[0]
+
+        if (item.get("fieldValueByName") or {}).get("name") != "Todo":
+            continue
+
+        if _set_status(item, IN_PROGRESS):
+            print("-- Status: 부모 #%s Todo → %s (파생 전이 — 리프의 착수는 묶음의 착수다)"
+                  % (a["number"], IN_PROGRESS))
 
 
 # ── 3. ref 선제 clone (비완전 목록 — 나열 밖은 agent 가 필요 시 직접) ─────────
@@ -367,6 +493,9 @@ def main():
     issue = load_ticket(n)
     print("== 티켓 #%s — %s" % (n, issue["title"]))
     check_dependencies(issue, n)   # 열린 선행 위에는 착수하지 않는다 (ADR-0017)
+    ensure_refs([OPS_REPO])        # 정책·티켓 코퍼스 — 착수 게이트가 근거 ADR status 를 읽는다
+    ancestors = load_ancestors(issue)
+    check_start_gate(issue, ancestors, n)   # 계층 전체: ADR accepted + 비Draft (착수의 문)
     targets, refs = parse_repos(issue["body"])
     print("== target: %s" % ", ".join(targets))
 
@@ -374,6 +503,7 @@ def main():
         print("== ref: %s (비완전 목록 — 나열 밖 참조 허용)" % ", ".join(refs))
 
     transition_status(issue, n)
+    transition_parents(ancestors)  # Todo 부모 → In Progress (리프 착수의 파생 전이)
     ensure_refs(refs)
 
     # target 마다 정렬한다. 개입 필요(2·3)는 여기서 받아 "다음 target 을 계속" 보고,
