@@ -16,7 +16,8 @@ import os
 import re
 import sys
 
-from _common import OPS_REPO, TARGET_DIR, Reject, block, gh_json, rel, run, run_cli
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "_lib"))
+from _common import OPS_REPO, TARGET_DIR, Reject, block, gh_json, rel, run, run_cli  # noqa: E402
 
 
 def ensure_closed(n):

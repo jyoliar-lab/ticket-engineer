@@ -4,3 +4,4 @@
 # 대상 코드 저장소 클론 — 하네스만 추적한다 (CLAUDE.md §1)
 workspace/
 __pycache__/
+staging/*

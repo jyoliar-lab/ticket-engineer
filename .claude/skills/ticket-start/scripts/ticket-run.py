@@ -37,12 +37,12 @@ import os
 import re
 import sys
 
-from _common import (EXIT_APPROVAL, EXIT_HUMAN, EXIT_PROCEED, EXIT_REJECT,
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "_lib"))
+from _common import (EXIT_APPROVAL, EXIT_HUMAN, EXIT_PROCEED, EXIT_REJECT,  # noqa: E402
                      OPS_REPO, REF_DIR, TARGET_DIR, Reject, block, gh_json,
                      rel, run, run_cli)
-
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "_lib"))
 import adrs  # noqa: E402  ('근거 ADR' 절 쌍둥이 파서 + 코퍼스 status 조회 — 원본은 ops-workflow adr_context.py)
+import comments  # noqa: E402  (코멘트 fetch·출력 — preflight 와 공유. 문구의 원천은 한 곳)
 from repos import parse_section  # noqa: E402  ('저장소' 절 파서 — 표기 원본은 ops-workflow repo_context.py)
 
 # 착수 전이: 이 상태에서만 In Progress 로 (§5 — 사람이 지시한 전이의 대행).
@@ -492,6 +492,7 @@ def main():
 
     issue = load_ticket(n)
     print("== 티켓 #%s — %s" % (n, issue["title"]))
+    comments.show(comments.fetch_all(n))   # 본문 밖 요구·재개 맥락 — 관문이 실어 나른다
     check_dependencies(issue, n)   # 열린 선행 위에는 착수하지 않는다 (ADR-0017)
     ensure_refs([OPS_REPO])        # 정책·티켓 코퍼스 — 착수 게이트가 근거 ADR status 를 읽는다
     ancestors = load_ancestors(issue)

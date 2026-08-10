@@ -1,4 +1,5 @@
-"""ticket-start 스크립트 공용 — 경로·거부 예외·명령 실행. 표준 라이브러리만 쓴다.
+"""skill 스크립트 공용 — 경로·거부 예외·명령 실행. 표준 라이브러리만 쓴다.
+(ticket-start·ticket-report 가 함께 쓴다 — 그래서 _lib 에 산다.)
 
 레이아웃 상수는 여기 한 곳에만 둔다 — 경로가 바뀌면 여기만 고친다.
 
@@ -12,7 +13,7 @@ import sys
 
 OPS_REPO = os.environ.get("OPS_REPO", "jyoliar-lab/ops-workflow")
 
-ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 TARGET_DIR = os.path.join(ROOT, "workspace", "target")   # 수정 권한의 경계 (worktree·bare)
 REF_DIR = os.path.join(ROOT, "workspace", "ref")         # 읽기 전용 참조 (hook 가 쓰기 거부)
 
