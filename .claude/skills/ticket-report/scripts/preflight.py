@@ -21,6 +21,8 @@ worktree(저장소) 스코프 (worktree 마다):
   ③ close 키워드가 티켓 연결(Closes 이슈repo#N — Development 연결·자동 close 는
      저장소 설정이 차단)뿐이다 — 티켓 밖 이슈를 겨눈 키워드는 실패(그 이슈는 정말 닫힌다)
   ④ 체크가 실패·진행 중이 아니다 (머지 게이트)
+     PR이 없어도 기본 브랜치 대비 커밋 0개 + working tree 깨끗이면 정보성 통과
+     (태그 발행 등 커밋 외 기여 — ②–④ 생략. 커밋이 있거나 더러우면 그대로 실패)
 
 하나라도 실패 → exit 1. 보고하지 말고 해당 항목을 해결하라.
 이 스크립트는 Acceptance Criteria 충족을 판정하지 않는다 — 그것은 의미 판정이다.
@@ -149,6 +151,26 @@ def pr_state_check(pr, cwd):
             "그 변경은 기본 브랜치에 없다. 새 PR로 올려 머지받은 뒤 다시.")
 
 
+def _no_local_work(repo: str, cwd: str) -> bool:
+    """기본 브랜치 대비 커밋 0개 + working tree 깨끗 → True (태그 발행 등 커밋 외 기여).
+    PR 부재 시의 fallback 판정에만 쓴다 — 판정에 실패하면 False 를 돌려
+    기존 실패 경로로 떨어진다 (관문을 느슨하게 하지 않는다)."""
+    base = subprocess.run(["gh", "api", "repos/%s" % repo, "--jq", ".default_branch"],
+                          cwd=cwd, capture_output=True, text=True)
+    if base.returncode != 0 or not base.stdout.strip():
+        return False
+
+    ahead = subprocess.run(["git", "rev-list", "--count",
+                            "origin/%s..HEAD" % base.stdout.strip()],
+                           cwd=cwd, capture_output=True, text=True)
+    dirty = subprocess.run(["git", "status", "--porcelain"],
+                           cwd=cwd, capture_output=True, text=True)
+    if ahead.returncode != 0 or dirty.returncode != 0:
+        return False
+
+    return ahead.stdout.strip() == "0" and dirty.stdout.strip() == ""
+
+
 def worktree_checks(n, repo, cwd):
     """①–④ — 한 worktree 의 PR·참조·close 키워드·체크. → 결과 목록."""
     r = subprocess.run(
@@ -156,6 +178,10 @@ def worktree_checks(n, repo, cwd):
          "url,state,title,body,headRefOid,statusCheckRollup"],
         cwd=cwd, capture_output=True, text=True)
     if r.returncode != 0:
+        if _no_local_work(repo, cwd):
+            return [(True, "① PR: 없음 — %s 는 이 티켓에서 커밋을 만들지 않았다 "
+                     "(기본 브랜치 대비 0 커밋·깨끗한 working tree — "
+                     "태그 발행 등 커밋 외 기여) — ②–④ 생략" % repo)]
         return [(False, "① PR: %s 의 현재 브랜치 PR을 찾지 못했다 — %s"
                  % (repo, r.stderr.strip() or "gh pr view 실패"))]
 
