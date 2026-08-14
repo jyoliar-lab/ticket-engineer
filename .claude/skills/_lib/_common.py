@@ -8,10 +8,18 @@ exit 는 진입점(run_cli)에서만 일어난다 — 호출부가 제어 흐름
 """
 import json
 import os
+import re
 import subprocess
 import sys
 
 OPS_REPO = os.environ.get("OPS_REPO", "jyoliar-lab/ops-workflow")
+
+# PR 제목·본문의 자동 close 키워드 (PR 머지 ≠ 티켓 종료 — CLAUDE.md §2①).
+# ticket-pr(생성 관문)·preflight(보고 관문)가 함께 쓴다 — 문구의 원천은 여기 한 곳.
+# guard hook 는 독립 실행 파일이라 예외적으로 사본을 가진다.
+CLOSE_KW = re.compile(
+    r"\b(clos(?:e|es|ed)|fix(?:es|ed)?|resolv(?:e|es|ed))\b\s*:?\s+\S*#\d+",
+    re.IGNORECASE)
 
 ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 TARGET_DIR = os.path.join(ROOT, "workspace", "target")   # 수정 권한의 경계 (worktree·bare)

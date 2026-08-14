@@ -12,7 +12,10 @@ Write/Edit/MultiEdit:
 Bash:
   거부 — `gh issue close`  (close는 사람의 것 — ops-workflow 규약)
   거부 — `gh pr merge`     (머지는 사람의 것 — CLAUDE.md §2③)
-  검증 — `gh pr create`    (본문은 인라인·티켓 참조 필수·close 키워드 금지 — CLAUDE.md §2①)
+  거부 — `gh pr create`    (PR 생성은 ticket-pr.py 관문으로 — CLAUDE.md §2①.
+         본문 규약 검증·squash 머지 후 브랜치 재정렬이 그 안에 있다)
+  거부 — `git push` + force 계열 플래그 (재정렬 push는 ticket-pr.py 안의
+         --force-with-lease 뿐 — agent가 직접 force하지 않는다)
 """
 import json
 import os
@@ -63,16 +66,15 @@ def main():
             out_deny("PR 머지는 사람의 것이다 — engineer는 PR을 열고 보고까지만 한다"
                      "(CLAUDE.md §2③).")
         if re.search(r"\bgh\s+pr\s+create\b", cmd):
-            if re.search(r"(--body-file\b|\s-F\s)", cmd):
-                out_deny("PR 본문은 --body 인라인으로 작성하라 — hook가 본문 규약"
-                         "(티켓 참조·close 키워드)을 검증해야 한다(CLAUDE.md §2①).")
-            if re.search(r"\b(clos(?:e|es|ed)|fix(?:es|ed)?|resolv(?:e|es|ed))\b"
-                         r"\s*:?\s+\S*#\d+", cmd, re.IGNORECASE):
-                out_deny("자동 close 키워드 금지 — PR 머지 ≠ 티켓 종료(CLAUDE.md §2①). "
-                         "티켓 참조는 키워드 없이 남겨라.")
-            if not re.search(r"jyoliar-lab/ops-workflow#\d+", cmd):
-                out_deny("PR 본문에 티켓 참조(jyoliar-lab/ops-workflow#<N>)가 없다 — "
-                         "브리지 규약(CLAUDE.md §2①).")
+            out_deny("PR 생성은 ticket-pr.py 관문으로 한다(CLAUDE.md §2①) — squash 머지 뒤 "
+                     "낡은 브랜치 재정렬과 본문 규약(티켓 참조 브리지·close 키워드 금지)을 "
+                     "그 도구가 수행한다. "
+                     "사용: ticket-pr.py <N> --title <제목> --body-file <경로> [--repo <owner/name>]")
+        if (re.search(r"\bgit\b[^|;&]*\bpush\b", cmd)
+                and re.search(r"(^|\s)(-f|--force|--force-with-lease(=\S+)?)(\s|$)", cmd)):
+            out_deny("force push는 agent가 직접 하지 않는다 — 수확된 브랜치의 재정렬 push는 "
+                     "ticket-pr.py 관문 안의 --force-with-lease 뿐이다(CLAUDE.md §2①). "
+                     "그 밖에 force가 필요해 보이면 멈추고 사람에게.")
         allow()
 
     if tool not in ("Write", "Edit", "MultiEdit"):

@@ -372,27 +372,50 @@ def ensure_bare(repo):
 
 
 def report_progress(repo, bare, branch, n):
-    """사람·agent가 '이어서/새로'를 판단할 근거. 머지된 PR + 열린 티켓이면 Reject(HUMAN)."""
+    """사람·agent가 '이어서/새로'를 판단할 근거. 머지된 PR + 열린 티켓이면 Reject(HUMAN).
+    squash 머지로 수확된 커밋(마지막 머지 PR의 head까지)은 진행 커밋과 구분해 보인다 —
+    main에 반영 완료된 것을 미반영처럼 읽으면 낡은 브랜치 위 작업을 오판한다."""
     head = run(["git", "-C", bare, "symbolic-ref", "--short", "HEAD"], check=False)
     default = head.stdout.strip() or "main"
-    log = run(["git", "-C", bare, "log", "--oneline",
-               "origin/%s..origin/%s" % (default, branch)]).stdout.strip()
-    print("-- 진행 커밋 (origin/%s 이후):" % default)
-    print(block(log) if log else "   (없음)")
 
     prs = gh_json("pr", "list", "-R", repo, "--head", branch,
-                  "--state", "all", "--json", "url,state")
+                  "--state", "all", "--json", "number,url,state,headRefOid,mergedAt")
+    merged = [p for p in prs if p["state"] == "MERGED"]
+    latest = max(merged, key=lambda p: p.get("mergedAt") or "") if merged else None
+    tip = run(["git", "-C", bare, "rev-parse", "origin/%s" % branch]).stdout.strip()
+    cut = (latest["headRefOid"]
+           if latest and run(["git", "-C", bare, "merge-base", "--is-ancestor",
+                              latest["headRefOid"], tip], check=False).returncode == 0
+           else None)
+
+    if cut:
+        old = run(["git", "-C", bare, "log", "--oneline",
+                   "origin/%s..%s" % (default, cut)]).stdout.strip()
+
+        if old:
+            print("-- 수확 완료 커밋 (PR #%s squash 머지로 origin/%s 반영 — 진행분 아님):"
+                  % (latest["number"], default))
+            print(block(old))
+
+        log = run(["git", "-C", bare, "log", "--oneline",
+                   "%s..origin/%s" % (cut, branch)]).stdout.strip()
+        print("-- 진행 커밋 (머지 이후):")
+    else:
+        log = run(["git", "-C", bare, "log", "--oneline",
+                   "origin/%s..origin/%s" % (default, branch)]).stdout.strip()
+        print("-- 진행 커밋 (origin/%s 이후):" % default)
+
+    print(block(log) if log else "   (없음)")
 
     for pr in prs:
         print("-- PR: %s (%s)" % (pr["url"], pr["state"]))
 
-    merged_only = (any(p["state"] == "MERGED" for p in prs)
-                   and not any(p["state"] == "OPEN" for p in prs))
-
-    if merged_only:
+    if merged and not any(p["state"] == "OPEN" for p in prs):
         raise Reject(
             "!! PR은 머지됐는데 티켓 #%s 는 열려 있다 — 후속 작업인지 close 대기인지" % n,
             "   agent가 판정할 수 없다. 보고만 하고 사람에게.",
+            "   후속 작업으로 확인되면 이 worktree에서 그대로 진행하라 — 낡은 브랜치의",
+            "   재정렬(수확 커밋 잘라내기)은 PR 생성 관문(ticket-pr.py)이 한다.",
             code=EXIT_HUMAN)
 
 

@@ -33,16 +33,13 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "_lib"))
 import comments  # noqa: E402  (코멘트 fetch·출력 — ticket-run 과 공유. 문구의 원천은 한 곳)
-from _common import OPS_REPO, TARGET_DIR, rel, run_cli  # noqa: E402
+from _common import CLOSE_KW, OPS_REPO, TARGET_DIR, rel, run_cli  # noqa: E402
 from repos import parse_section  # noqa: E402  ('저장소' 절 파서 — 표기 원본은 ops-workflow repo_context.py)
 
 FAIL_STATES = {"FAILURE", "ERROR", "CANCELLED", "TIMED_OUT",
                "ACTION_REQUIRED", "STARTUP_FAILURE", "STALE"}
 PEND_STATES = {"PENDING", "QUEUED", "IN_PROGRESS", "WAITING",
                "REQUESTED", "EXPECTED"}
-CLOSE_KW = re.compile(
-    r"\b(clos(?:e|es|ed)|fix(?:es|ed)?|resolv(?:e|es|ed))\b\s*:?\s+\S*#\d+",
-    re.IGNORECASE)
 
 
 def emit(results):
