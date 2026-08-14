@@ -3,8 +3,9 @@
 
 사용: ticket-pr.py <ticket-number> --title <제목> --body-file <경로> [--repo <owner/name>]
   worktree 는 workspace/target/<repo>/ticket-<N>/ 에서 스스로 찾는다 — target 이
-  여럿이면 --repo 로 지정한다. 본문은 파일로 받는다(긴 본문 안전). 티켓 참조
-  (브리지 — jyoliar-lab/ops-workflow#<N>)가 본문에 없으면 스크립트가 덧붙인다.
+  여럿이면 --repo 로 지정한다. 본문은 파일로 받는다(긴 본문 안전). 티켓 연결
+  (`Closes jyoliar-lab/ops-workflow#<N>` — 브리지 + 이슈 Development 연결)은 본문에
+  없으면 스크립트가 덧붙인다. 자동 close 는 ops-workflow 저장소 설정이 막는다.
 
 왜 관문인가 (직접 `gh pr create` 는 hook 가 거부한다):
   Squash and Merge 는 브랜치 커밋들을 새 커밋 하나로 다시 써서 main 에 얹는다 —
@@ -18,7 +19,7 @@
 
 거부하는 경우:
   exit 1 — 커밋 안 된 변경(커밋부터) · 이미 열린 PR(그 브랜치에 일반 push 로) ·
-           PR 로 낼 새 커밋이 없다 · close 키워드(PR 머지 ≠ 티켓 종료)
+           PR 로 낼 새 커밋이 없다 · 티켓 밖 이슈를 겨눈 close 키워드
   exit 3 — rebase 충돌(기본 브랜치가 새 커밋과 같은 부분을 실제로 바꿈 — abort 후
            보고만, 처리는 사람과) · 원격과 양방향 분기(ticket-run 으로 정렬부터)
 """
@@ -30,8 +31,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "_lib"))
-from _common import (CLOSE_KW, EXIT_HUMAN, OPS_REPO, TARGET_DIR, Reject,  # noqa: E402
-                     block, gh_json, rel, run, run_cli)
+from _common import (EXIT_HUMAN, OPS_REPO, TARGET_DIR, Reject, block,  # noqa: E402
+                     close_kw_targets, gh_json, rel, run, run_cli)
 
 
 @dataclass(frozen=True)
@@ -213,21 +214,34 @@ def push_plain(wt: str, branch: str, default: str, remote_tip: Optional[str]) ->
 # ── 4. 본문 규약 → PR 생성 ───────────────────────────────────────────────────
 
 def build_body(n: str, title: str, body_path: str) -> str:
+    """close 키워드는 티켓 연결(`Closes <OPS_REPO>#<N>`) 하나만 산다 — 이 도구가 덧붙인다.
+    이 키워드가 PR 을 이슈의 Development 절에 연결한다(수동 gear 연결과 같은 효과 —
+    기존 PR 연결 API 는 없어 이것이 유일한 자동화 경로다). 티켓의 자동 close 는
+    ops-workflow 저장소 설정 해제(수동 불변식)가 막는다. 그 밖의 이슈를 겨눈 키워드는
+    거부한다 — 설정 보호가 없는 저장소(target 등)의 이슈는 머지 시 정말 닫힌다."""
     if not os.path.isfile(body_path):
         raise Reject("거부: --body-file 을 읽을 수 없다 — %s" % body_path)
 
     with open(body_path, encoding="utf-8") as f:
         body = f.read().strip()
 
-    kw = CLOSE_KW.search(title + " " + body)
+    canonical = ("%s#%s" % (OPS_REPO, n)).lower()
 
-    if kw:
-        raise Reject("거부: 자동 close 키워드 발견 — %r. PR 머지 ≠ 티켓 종료." % kw.group(0),
-                     "  티켓 참조는 키워드 없이 남긴다 (없으면 이 도구가 덧붙인다).")
+    if close_kw_targets(title):
+        raise Reject("거부: 제목에 close 키워드가 있다 — 제목에는 쓰지 않는다.")
 
-    if not re.search(r"%s#%s\b" % (re.escape(OPS_REPO), n), body):
-        body += "\n\nRef: %s#%s" % (OPS_REPO, n)
-        print("-- 본문에 티켓 참조가 없어 덧붙였다: Ref: %s#%s (브리지)" % (OPS_REPO, n))
+    stray = [t for t in close_kw_targets(body) if t != canonical]
+
+    if stray:
+        raise Reject("거부: 티켓 밖 이슈를 겨눈 close 키워드 — %s" % ", ".join(stray),
+                     "  자동 close 차단 설정은 ops-workflow 에만 있다 — 다른 저장소의",
+                     "  이슈는 머지 시 정말 닫힌다. 참조는 키워드 없이 남겨라.",
+                     "  티켓 연결(Closes %s#%s)은 이 도구가 덧붙인다." % (OPS_REPO, n))
+
+    if canonical not in close_kw_targets(body):
+        body += "\n\nCloses %s#%s" % (OPS_REPO, n)
+        print("-- 티켓 연결을 덧붙였다: Closes %s#%s (브리지 + Development 연결 — "
+              "자동 close 는 저장소 설정이 막는다)" % (OPS_REPO, n))
 
     return body
 

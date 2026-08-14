@@ -26,7 +26,7 @@
 
 두 skill 사이, 작업 중의 규약:
 
-1. **PR 생성은 `ticket-pr.py <N> --title <제목> --body-file <경로>`로** — squash 머지 뒤 낡은 브랜치의 재정렬(수확된 커밋을 잘라내고 새 커밋만 최신 main 위로)과 본문 규약을 관문이 수행한다. 티켓 참조(`jyoliar-lab/ops-workflow#<N>` 브리지)는 없으면 관문이 덧붙이고, **`Closes`/`Fixes` 등 자동 close 키워드는 쓰지 않는다** — PR 머지 ≠ 티켓 종료.
+1. **PR 생성은 `ticket-pr.py`로** — squash 머지 후 재정렬·본문 규약·티켓 Development 연결을 관문이 수행한다.
 2. 대상 저장소에 **머지 게이트(required check)가 있으면 통과가 필수**다. 우회하지 않는다(admin merge·force 금지).
 3. **머지와 Issue close는 사람의 것이다.** engineer는 PR을 열고 보고까지 한다 — 검수·머지·close는 사람이 한다.
 4. **도구·라이브러리·프레임워크 설치는 조사 후에.** 기억 속 버전을 그대로 쓰지 않는다 — 설치 전 **가장 안정된(stable) 버전을 실제로 조사**(공식 릴리스·문서 확인)해 그 버전으로 설치한다. 최신(latest·beta·RC)이 아니라 안정 버전이다.
@@ -64,7 +64,7 @@ ref 목록의 갱신(참조한 저장소를 절에 반영)은 **권장**이지 �
 ## 5. 강제는 구조로
 
 - 쓰기 경계·close·merge: **PreToolUse hook**(`.claude/hooks/guard-write.py`)가 거부한다.
-- PR 생성 관문: 같은 hook가 직접 `gh pr create`·force push를 거부하고 `ticket-pr.py`로 보낸다 — 본문 규약 검증과 squash 머지 후 재정렬은 그 도구 안에 있다.
+- PR 생성·force push: 같은 hook가 거부하고 `ticket-pr.py` 관문으로 보낸다.
 - 머지 게이트: 대상 저장소의 required check가 거부한다.
 - 클러스터 쓰기·Secret 열람: agent 자격증명의 RBAC에 권한이 **없어서** 거부된다 (§2-5).
 - 막히면 **우회하지 않고** 왜 막혔는지 읽는다. hook가 잘못됐다고 판단되면 그것도 사람에게 알린다 — 고치는 것은 agent가 아니다. 구체적 수정안이 있으면 `staging/`에 써서 넘긴다(§4).

@@ -14,12 +14,20 @@ import sys
 
 OPS_REPO = os.environ.get("OPS_REPO", "jyoliar-lab/ops-workflow")
 
-# PR 제목·본문의 자동 close 키워드 (PR 머지 ≠ 티켓 종료 — CLAUDE.md §2①).
+# PR 제목·본문의 close 키워드 — group(2) 가 겨눈 이슈다. 허용되는 것은 티켓 연결
+# (`Closes <OPS_REPO>#<N>` — ticket-pr 관문이 덧붙인다. Development 연결의 유일한 API
+# 경로이며, 티켓의 자동 close 는 ops-workflow 저장소 설정 해제가 막는다 — discussion
+# 260727_1608 수동 불변식) 뿐이고, 그 밖의 이슈를 겨눈 키워드는 거부한다 — 설정 보호가
+# 없는 저장소의 이슈는 머지 시 정말 닫힌다.
 # ticket-pr(생성 관문)·preflight(보고 관문)가 함께 쓴다 — 문구의 원천은 여기 한 곳.
-# guard hook 는 독립 실행 파일이라 예외적으로 사본을 가진다.
 CLOSE_KW = re.compile(
-    r"\b(clos(?:e|es|ed)|fix(?:es|ed)?|resolv(?:e|es|ed))\b\s*:?\s+\S*#\d+",
+    r"\b(clos(?:e|es|ed)|fix(?:es|ed)?|resolv(?:e|es|ed))\b\s*:?\s+(\S*#\d+)",
     re.IGNORECASE)
+
+
+def close_kw_targets(text: str) -> "list[str]":
+    """text 의 close 키워드가 겨눈 이슈들 (소문자) — 허용 판정은 호출자가 한다."""
+    return [m.group(2).lower() for m in CLOSE_KW.finditer(text)]
 
 ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 TARGET_DIR = os.path.join(ROOT, "workspace", "target")   # 수정 권한의 경계 (worktree·bare)

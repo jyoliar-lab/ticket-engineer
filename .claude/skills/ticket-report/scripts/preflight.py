@@ -18,7 +18,8 @@ worktree(저장소) 스코프 (worktree 마다):
      배포 뒤에야 검증되는 티켓. 머지됨이면 HEAD가 머지된 head와 같은지도 본다 —
      머지 뒤 커밋은 기본 브랜치에 없다. CLOSED는 실패)
   ② PR 본문에 jyoliar-lab/ops-workflow#<N> 참조가 있다 (브리지)
-  ③ 자동 close 키워드가 없다 (PR 머지 ≠ 티켓 종료)
+  ③ close 키워드가 티켓 연결(Closes 이슈repo#N — Development 연결·자동 close 는
+     저장소 설정이 차단)뿐이다 — 티켓 밖 이슈를 겨눈 키워드는 실패(그 이슈는 정말 닫힌다)
   ④ 체크가 실패·진행 중이 아니다 (머지 게이트)
 
 하나라도 실패 → exit 1. 보고하지 말고 해당 항목을 해결하라.
@@ -33,7 +34,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "_lib"))
 import comments  # noqa: E402  (코멘트 fetch·출력 — ticket-run 과 공유. 문구의 원천은 한 곳)
-from _common import CLOSE_KW, OPS_REPO, TARGET_DIR, rel, run_cli  # noqa: E402
+from _common import OPS_REPO, TARGET_DIR, close_kw_targets, rel, run_cli  # noqa: E402
 from repos import parse_section  # noqa: E402  ('저장소' 절 파서 — 표기 원본은 ops-workflow repo_context.py)
 
 FAIL_STATES = {"FAILURE", "ERROR", "CANCELLED", "TIMED_OUT",
@@ -167,10 +168,14 @@ def worktree_checks(n, repo, cwd):
     results.append((ref_ok, f"② 참조: {OPS_REPO}#{n} "
                     + ("있음" if ref_ok else "없음 — 브리지 규약 위반")))
 
-    kw = CLOSE_KW.search(body + " " + title)
-    results.append((kw is None, "③ close 키워드: "
-                    + ("없음" if kw is None
-                       else f"발견 {kw.group(0)!r} — PR 머지 ≠ 티켓 종료")))
+    # 허용되는 close 키워드는 티켓 연결(Closes OPS_REPO#N — Development 연결) 하나뿐.
+    # 티켓의 자동 close 는 ops-workflow 저장소 설정 해제가 막지만, 다른 저장소의
+    # 이슈를 겨눈 키워드는 머지 시 그 이슈를 정말 닫는다 — 실패.
+    canonical = f"{OPS_REPO}#{n}".lower()
+    stray = [t for t in close_kw_targets(body + " " + title) if t != canonical]
+    results.append((not stray, "③ close 키워드: "
+                    + (f"발견 {', '.join(stray)} — 티켓 밖 이슈를 닫는 키워드" if stray
+                       else "티켓 연결뿐 (혹은 없음)")))
 
     checks = pr.get("statusCheckRollup") or []
     if not checks:

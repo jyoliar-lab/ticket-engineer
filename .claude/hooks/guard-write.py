@@ -67,8 +67,8 @@ def main():
                      "(CLAUDE.md §2③).")
         if re.search(r"\bgh\s+pr\s+create\b", cmd):
             out_deny("PR 생성은 ticket-pr.py 관문으로 한다(CLAUDE.md §2①) — squash 머지 뒤 "
-                     "낡은 브랜치 재정렬과 본문 규약(티켓 참조 브리지·close 키워드 금지)을 "
-                     "그 도구가 수행한다. "
+                     "낡은 브랜치 재정렬과 본문 규약(티켓 Closes 연결 자동 부여 = Development "
+                     "연결 · 타 이슈 close 키워드 거부)을 그 도구가 수행한다. "
                      "사용: ticket-pr.py <N> --title <제목> --body-file <경로> [--repo <owner/name>]")
         if (re.search(r"\bgit\b[^|;&]*\bpush\b", cmd)
                 and re.search(r"(^|\s)(-f|--force|--force-with-lease(=\S+)?)(\s|$)", cmd)):
