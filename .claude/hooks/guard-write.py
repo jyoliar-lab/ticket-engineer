@@ -3,7 +3,8 @@
 
 Write/Edit/MultiEdit:
   허용 — workspace/target/**                    (티켓 worktree — 수정 권한의 경계)
-  허용 — staging/**                             (사람에게 넘길 제안·초안 — CLAUDE.md §4)
+  허용 — tmp/**                                 (초안 인박스 — tmp/staging·tmp/pr·
+         tmp/github-issues. CLAUDE.md §1·§4)
   거부 — workspace/ref/**                       (참조 저장소·정책 코퍼스 — 읽기 전용. ADR-0016의 ref)
   거부 — workspace/target/.bare/**              (bare 저장소 — 도구만 만진다)
   거부 — 그 외 전부. 특히 자기 하네스(CLAUDE.md·.claude/**)는
@@ -69,7 +70,7 @@ def main():
             out_deny("PR 생성은 ticket-pr.py 관문으로 한다(CLAUDE.md §2①) — squash 머지 뒤 "
                      "낡은 브랜치 재정렬과 본문 규약(티켓 Closes 연결 자동 부여 = Development "
                      "연결 · 타 이슈 close 키워드 거부)을 그 도구가 수행한다. "
-                     "사용: ticket-pr.py <N> --title <제목> --body-file <경로> [--repo <owner/name>]")
+                     "사용: ticket-pr.py <N> --title <제목> --body-file <tmp/pr/...> [--repo <owner/name>]")
         if (re.search(r"\bgit\b[^|;&]*\bpush\b", cmd)
                 and re.search(r"(^|\s)(-f|--force|--force-with-lease(=\S+)?)(\s|$)", cmd)):
             out_deny("force push는 agent가 직접 하지 않는다 — 수확된 브랜치의 재정렬 push는 "
@@ -106,13 +107,13 @@ def main():
         out_deny("workspace 직속에는 쓰지 않는다 — 작업은 workspace/target/<repo>/ticket-<N>/, "
                  "참조는 workspace/ref/<repo>(읽기 전용)다.")
 
-    if under(fp, os.path.join(proj, "staging")):
+    if under(fp, os.path.join(proj, "tmp")):
         allow()
 
     out_deny(
-        "쓰기 경계 위반: %s — engineer는 workspace/** 와 staging/** 에서만 쓴다. "
+        "쓰기 경계 위반: %s — engineer는 workspace/** 와 tmp/** 에서만 쓴다. "
         "하네스(CLAUDE.md·.claude/**)는 agent가 고치지 않는다 — "
-        "개정 제안은 staging/에 써서 사람에게 넘겨라(CLAUDE.md §4)." % fp
+        "개정 제안은 tmp/staging/에 써서 사람에게 넘겨라(CLAUDE.md §4)." % fp
     )
 
 

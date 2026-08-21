@@ -252,7 +252,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument("ticket", help="티켓 번호")
     parser.add_argument("--title", required=True, help="PR 제목")
-    parser.add_argument("--body-file", required=True, help="PR 본문 파일 (staging/ 등)")
+    parser.add_argument("--body-file", required=True, help="PR 본문 파일 (tmp/pr/)")
     parser.add_argument("--repo", help="owner/name — 이 티켓의 worktree 가 여럿일 때 지정")
     args = parser.parse_args()
     n: str = args.ticket.lstrip("#")

@@ -15,7 +15,7 @@
   - **`workspace/target/.bare/<repo>.git`** — bare 저장소. **도구(`ticket-run.py`)만 만진다** — hook가 쓰기를 거부한다.
   - **`workspace/ref/<repo>`** — 참조 저장소, **전부 읽기 전용**(hook가 거부). 정책·티켓 코퍼스(`ref/ops-workflow`)도 여기 산다. SessionStart hook가 세션 시작 시 ref 전체를 최신화한다. ops-workflow에 남길 것(코멘트)은 파일이 아니라 `gh`로 컨트롤 플레인에.
 - 준비·정렬은 손 git이 아니라 **`ticket-run.py`가 한다**(`ticket-start` skill) — 원격 브랜치가 진실의 원천이고, exit 코드가 다음 행동이다.
-- 쓰기는 `workspace/` 와 `staging/`(§4 — 사람에게 넘길 제안·초안) 아래에서만 가능하다 — **guard hook가 강제**한다.
+- 쓰기는 `workspace/` 와 `tmp/` 아래에서만 가능하다 — **guard hook가 강제**한다. `tmp/`(gitignored)의 자리: `tmp/staging/` 마찰 로그·사람에게 넘길 제안(§4) · `tmp/github-issues/` 티켓 코멘트 초안(게시는 `gh --body-file`로).
 
 ## 2. 티켓 흐름 — 사람이 지정한다
 
@@ -56,7 +56,7 @@ ref 목록의 갱신(참조한 저장소를 절에 반영)은 **권장**이지 �
 
 ## 4. 하지 않는 것
 
-- ❌ **자기 하네스 수정** — 이 저장소의 `CLAUDE.md`·`.claude/**`. 개정은 **사람이 밖에서** 한다. hook가 거부한다. 개정 제안이나 사람에게 넘길 초안은 **`staging/`에 쓴다** — 하네스 밖의 유일한 자유 쓰기 경로다.
+- ❌ **자기 하네스 수정** — 이 저장소의 `CLAUDE.md`·`.claude/**`. 개정은 **사람이 밖에서** 한다. hook가 거부한다. 개정 제안이나 사람에게 넘길 초안은 **`tmp/staging/`에 쓴다** — 하네스 밖의 자유 쓰기 경로는 `tmp/`뿐이다.
 - ❌ **Issue close** · `Closes` 키워드 · **PR 머지** — hook가 `gh issue close`·`gh pr merge`를 거부한다.
 - ❌ **ops-workflow 저장소 파일 쓰기** — 문서(지식 플레인)는 관할 밖. 남길 것은 티켓 코멘트로.
 - ❌ 티켓이 정하지 않은 결정의 임의 확정 (§3)
@@ -67,4 +67,4 @@ ref 목록의 갱신(참조한 저장소를 절에 반영)은 **권장**이지 �
 - PR 생성·force push: 같은 hook가 거부하고 `ticket-pr.py` 관문으로 보낸다.
 - 머지 게이트: 대상 저장소의 required check가 거부한다.
 - 클러스터 쓰기·Secret 열람: agent 자격증명의 RBAC에 권한이 **없어서** 거부된다 (§2-5).
-- 막히면 **우회하지 않고** 왜 막혔는지 읽는다. hook가 잘못됐다고 판단되면 그것도 사람에게 알린다 — 고치는 것은 agent가 아니다. 구체적 수정안이 있으면 `staging/`에 써서 넘긴다(§4).
+- 막히면 **우회하지 않고** 왜 막혔는지 읽는다. hook가 잘못됐다고 판단되면 그것도 사람에게 알린다 — 고치는 것은 agent가 아니다. 구체적 수정안이 있으면 `tmp/staging/`에 써서 넘긴다(§4).
