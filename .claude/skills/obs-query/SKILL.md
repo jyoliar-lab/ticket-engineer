@@ -8,29 +8,29 @@ description: 홈랩 관측 스택(Prometheus·Loki·Tempo) 조회 — PromQL·Lo
 **actual 은 관측 스택으로 읽는다.** desired 는 코드(GitOps), actual 은 메트릭·로그·트레이스다.
 `kubectl get` 이 "파드가 떠 있다"까지 답하면, "무엇을 내보내고 무엇이 기록됐는가"는 여기서 답한다.
 
-경로는 Grafana 데이터소스 프록시다 — `https://obs.mg.jyo-liar.com/api/datasources/proxy/uid/<uid>/<네이티브 경로>`.
-Grafana 가 테넌트 헤더를 얹고, 게이트웨이는 GET 만 통과시킨다. 스크립트는 그 위에서 GET 만 쓴다.
+백엔드는 셋이고 너는 이름만 안다 — **metrics**(PromQL) · **logs**(LogQL) · **traces**(TraceQL).
+어디에 있고 어떤 경로로 닿는지는 스크립트의 일이다 — 호스트·URL 을 알 필요도, 조립할 필요도 없다.
+테넌트는 서버가 얹고, 읽기 전용은 서버가 건다. 스크립트는 그 위에서 GET 만 쓴다.
 MCP 는 쓰지 않는다 — PromQL·LogQL·TraceQL 은 네가 아는 언어다. 도구 정의 없이 질의를 직접 쓴다.
 
 ## 준비 — 토큰은 env 로만
 
 `OBS_GRAFANA_TOKEN` 이 비어 있으면 스크립트가 거부한다.
-값은 **사람이** Secret(`prometheus/read-for-agent-token`)에서 꺼내 `.claude/settings.local.json`(gitignored)의 `env` 에 둔다:
+값은 **사람이** 꺼내 `.claude/settings.local.json`(gitignored)의 `env` 에 둔다:
 
 ```json
 { "env": { "OBS_GRAFANA_TOKEN": "<토큰>" } }
 ```
 
 agent 는 이 값을 읽지도 옮기지도 않는다 — 어디에도 적지 않고, 출력에도 남기지 않는다.
-(`OBS_GRAFANA_URL` 로 게이트웨이를 바꿀 수 있다. 기본값이 홈랩이다.)
 
 ## 스크립트 — scripts/ 는 PATH 에 있다(bare name 실행)
 
 | 스크립트 | 백엔드(uid) | 하는 일 |
 |---|---|---|
-| `promql.py '<PromQL>'` | Prometheus (`prometheus`) | 즉시 조회. `--range 1h [--step]` 구간 조회(시계열별 요약). `--labels` · `--label-values <name>` · `--series` 로 탐색 |
-| `logql.py '<LogQL>'` | Loki (`loki-careerhub`) | 로그 줄. `--since 1h` `--limit 30`(기본 — 낮다). 메트릭 질의면 시계열 요약. `--labels` · `--label-values` · `--series` |
-| `traceql.py search [--q '<TraceQL>']` | Tempo (`tempo-careerhub`) | 최근 트레이스 목록. `--min-duration 500ms` |
+| `promql.py '<PromQL>'` | metrics | 즉시 조회. `--range 1h [--step]` 구간 조회(시계열별 요약). `--labels` · `--label-values <name>` · `--series` 로 탐색 |
+| `logql.py '<LogQL>'` | logs | 로그 줄. `--since 1h` `--limit 30`(기본 — 낮다). 메트릭 질의면 시계열 요약. `--labels` · `--label-values` · `--series` |
+| `traceql.py search [--q '<TraceQL>']` | traces | 최근 트레이스 목록. `--min-duration 500ms` |
 | `traceql.py trace <traceID>` | | 트레이스 요약 — 서비스·span 수·오류·느린 span. 원본은 항상 파일로 |
 | `traceql.py tags` · `tag-values <tag>` | | 검색 가능한 태그 탐색 |
 
@@ -57,6 +57,7 @@ traceql.py trace 3f2a9c…
 
 ## 경계
 
-- **읽기만.** 스크립트에 GET 외의 메서드가 없고, 게이트웨이·Grafana 가 같은 것을 강제한다.
+- **읽기만.** 스크립트에 GET 외의 메서드가 없고, 서버 쪽이 같은 것을 강제한다.
+- **경로를 조립하지 않는다.** 스크립트가 거부하면(401·연결 실패) 메시지가 말하는 대로 사람에게 — `curl` 로 직접 닿으려 하지 않는다.
 - 관측 결과는 **관찰**이다 — 티켓 코멘트에 쌓이는 원자료지, 문서가 아니다. 해석은 증거(질의·시각·값)와 함께 적는다.
-- 토큰이 없거나(401) 게이트웨이가 닿지 않으면(연결 실패) 우회하지 않는다 — 사람에게.
+- 토큰이 없거나(401) 백엔드에 닿지 않으면(연결 실패) 우회하지 않는다 — 사람에게.

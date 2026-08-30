@@ -56,12 +56,43 @@ class Result:
     body: Any
 
 
+# uid → agent 에게 보일 논리 이름. 오류·안내는 이 이름으로만 말한다 — 호스트·경로는 agent 의 관심사가 아니다.
+BACKEND_NAMES = {"prometheus": "metrics", "loki-careerhub": "logs", "tempo-careerhub": "traces"}
+
+
+def backend_name(uid: str) -> str:
+    return BACKEND_NAMES.get(uid, uid)
+
+
+def _http_error(name: str, code: int, body: str) -> str:
+    """상태별로 다음 행동만 말한다. URL·원문 body 는 찍지 않는다."""
+    if code == 401:
+        return "%s 백엔드 인증 실패(401). 사람에게: OBS_GRAFANA_TOKEN 확인." % name
+    if code in (403, 404, 405):
+        return "%s 백엔드가 요청을 거부했다(%d). 읽기 경로 밖이거나 백엔드가 없다 — 사람에게." % (name, code)
+    if code == 400 or code == 422:
+        msg = _json_message(body)
+        return "%s 백엔드가 질의를 거부했다(%d)%s — 질의를 고쳐 다시." % (name, code, (": " + msg) if msg else "")
+    return "%s 백엔드 오류(%d). 잠시 후 다시, 반복되면 사람에게." % (name, code)
+
+
+def _json_message(body: str) -> str:
+    try:
+        obj = json.loads(body)
+    except ValueError:
+        return body.strip()[:200]
+    for k in ("error", "message"):
+        if isinstance(obj, dict) and obj.get(k):
+            return str(obj[k])[:200]
+    return ""
+
+
 def conn_from_env() -> Conn:
     token = os.environ.get("OBS_GRAFANA_TOKEN", "").strip()
     if not token:
         raise ObsError(
-            "OBS_GRAFANA_TOKEN 이 비어 있다 — Grafana SA 토큰은 사람이 Secret 에서 꺼내 "
-            ".claude/settings.local.json 의 env 에 둔다(gitignored). 커밋하지 않는다.")
+            "OBS_GRAFANA_TOKEN 이 비어 있다 — 사람에게: 토큰을 .claude/settings.local.json 의 env 에 둔다"
+            "(gitignored). agent 는 값을 다루지 않는다.")
     base = os.environ.get("OBS_GRAFANA_URL", DEFAULT_URL).rstrip("/")
     return Conn(base_url=base, token=token)
 
@@ -81,10 +112,9 @@ def get(conn: Conn, uid: str, path: str, params: dict[str, Any] | None = None) -
             raw = resp.read()
             status = resp.status
     except urllib.error.HTTPError as e:
-        detail = e.read().decode("utf-8", "replace")[:400]
-        raise ObsError("HTTP %d %s — %s\n%s" % (e.code, e.reason, url, detail))
+        raise ObsError(_http_error(backend_name(uid), e.code, e.read().decode("utf-8", "replace")))
     except urllib.error.URLError as e:
-        raise ObsError("연결 실패 — %s\n%s" % (url, e.reason))
+        raise ObsError("%s 백엔드에 닿지 못했다(%s). 사람에게: 게이트웨이·VPN 확인." % (backend_name(uid), e.reason))
     try:
         body: Any = json.loads(raw) if raw else {}
     except ValueError:
