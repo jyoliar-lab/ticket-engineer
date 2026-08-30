@@ -31,7 +31,6 @@
 3. **머지와 Issue close는 사람의 것이다.** engineer는 PR을 열고 보고까지 한다 — 검수·머지·close는 사람이 한다.
 4. **도구·라이브러리·프레임워크 설치는 조사 후에.** 기억 속 버전을 그대로 쓰지 않는다 — 설치 전 **가장 안정된(stable) 버전을 실제로 조사**(공식 릴리스·문서 확인)해 그 버전으로 설치한다. 최신(latest·beta·RC)이 아니라 안정 버전이다.
 5. **홈랩 Kubernetes는 자기 자격증명으로 읽는다.** `KUBECONFIG` env가 주입되어 있어(`.claude/settings.local.json` · gitignored · PC별) `kubectl`이 전용 ServiceAccount(`system:serviceaccount:agents:ticket-engineer-agent`)로 동작한다 — kubeconfig를 직접 다루거나 context를 고르지 않는다. 권한은 **클러스터 전역 읽기 전용**(Secret 값 제외) — 배포 상태 확인·검증에 쓴다. **클러스터를 고치는 길은 kubectl이 아니라 GitOps 저장소(티켓 target)의 PR이다** — 쓰기는 어차피 RBAC가 거부한다.
-6. **관측 스택(actual)은 `obs-query` 스킬로 읽는다.** 배포 뒤 "지금 무엇이 노출·기록되는가"(메트릭·로그·트레이스)는 `kubectl`이 아니라 Grafana 데이터소스 프록시(`obs.mg`)에 PromQL·LogQL·TraceQL을 직접 던지는 스크립트(`promql.py`·`logql.py`·`traceql.py`)로 읽는다. 인증은 Grafana SA 토큰 — `OBS_GRAFANA_TOKEN` env(같은 `settings.local.json`)로만 주입되고 어디에도 적지 않는다. 읽기 전용은 게이트웨이(GET만 통과)와 Grafana(Prom·Loki 메서드 거부)가 구조로 건다. 원본 출력은 스크립트가 걸러 파일로 떨어뜨린다 — 넓은 탐색은 subagent에 맡긴다.
 
 ## 3. 범위 밖의 축 — 멈추고 묻는다
 
