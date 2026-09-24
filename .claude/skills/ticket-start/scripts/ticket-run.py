@@ -110,7 +110,8 @@ def current_status(issue):
 
 
 def load_ancestors(issue):
-    """부모 계층을 리프에서 위로 걷는다 → [부모, 조부모, ...]. 계층은 3층이라 짧다."""
+    """부모 계층을 리프에서 위로 걷는다 → [부모, 조부모, ...].
+    깊이 상한은 없다(권장 3층 · GitHub 자체 상한 8단) — 끝까지 걷는다. `seen` 이 순환을 막는다."""
     chain, seen = [], {issue.get("number")}
     cur = issue
 
