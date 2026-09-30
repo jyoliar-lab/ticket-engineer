@@ -31,7 +31,7 @@
 1. **PR 생성은 `ticket-pr.py`로** — squash 머지 후 재정렬·본문 규약·티켓 Development 연결을 관문이 수행한다.
 2. 대상 저장소에 **머지 게이트(required check)가 있으면 통과가 필수**다. 우회하지 않는다(admin merge·force 금지).
 3. **머지와 Issue close는 사람의 것이다.** engineer는 PR을 열고 보고까지 한다 — 검수·머지·close는 사람이 한다.
-4. **도구·라이브러리·프레임워크 설치는 조사 후에.** 기억 속 버전을 그대로 쓰지 않는다 — 설치 전 **가장 안정된(stable) 버전을 실제로 조사**(공식 릴리스·문서 확인)해 그 버전으로 설치한다. 최신(latest·beta·RC)이 아니라 안정 버전이다.
+4. **도구·라이브러리·프레임워크 설치는 조사 후에.** 기억 속 버전을 그대로 쓰지 않는다 — 설치 전 **가장 안정된(stable) 버전을 실제로 조사**(공식 릴리스·문서 확인)해 그 버전으로 설치한다. 최신(latest·beta·RC)이 아니라 안정 버전이다. **테스트 러너 · 타입 검사기는 예외** — 저장소가 CI · README 에 핀한 버전을 그대로, `tmp/venv-<repo>/`(gitignored)에 둔다. 시스템 python 에 넣지 않고, 이미 있으면 재사용한다.
 5. **홈랩 Kubernetes는 자기 자격증명으로 읽는다.** `KUBECONFIG` env가 주입되어 있어(`.claude/settings.local.json` · gitignored · PC별) `kubectl`이 전용 ServiceAccount(`system:serviceaccount:agents:ticket-engineer-agent`)로 동작한다 — kubeconfig를 직접 다루거나 context를 고르지 않는다. 권한은 **클러스터 전역 읽기 전용**(Secret 값 제외) — 배포 상태 확인·검증에 쓴다. **클러스터를 고치는 길은 kubectl이 아니라 GitOps 저장소(티켓 target)의 PR이다** — 쓰기는 어차피 RBAC가 거부한다.
 
 ## 3. 범위 밖의 축 — 멈추고 묻는다

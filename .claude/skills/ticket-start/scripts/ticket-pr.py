@@ -7,7 +7,9 @@
   worktree 는 workspace/target/<repo>/ticket-<N>/ 에서 스스로 찾는다 — target 이
   여럿이면 --repo 로 지정한다. 본문은 파일로 받는다(긴 본문 안전). 티켓 연결
   (`Closes jyoliar-lab/ops-workflow#<N>` — 브리지 + 이슈 Development 연결)은 본문에
-  없으면 스크립트가 덧붙인다. 자동 close 는 ops-workflow 저장소 설정이 막는다.
+  없으면 스크립트가 덧붙이고 **body-file 에도 되쓴다** — 뒤에 `gh pr edit --body-file`
+  로 체크리스트를 갱신해도 연결 줄이 살아남게. 자동 close 는 ops-workflow 저장소
+  설정이 막는다. Draft 로 열면 Development 연결은 ready 전환 때 생긴다.
 
 왜 관문인가 (직접 `gh pr create` 는 hook 가 거부한다):
   Squash and Merge 는 브랜치 커밋들을 새 커밋 하나로 다시 써서 main 에 얹는다 —
@@ -242,8 +244,13 @@ def build_body(n: str, title: str, body_path: str) -> str:
 
     if canonical not in close_kw_targets(body):
         body += "\n\nCloses %s#%s" % (OPS_REPO, n)
+
+        with open(body_path, "w", encoding="utf-8") as f:   # 되쓰기 — 이후 gh pr edit --body-file 이 지우지 않게
+            f.write(body + "\n")
+
         print("-- 티켓 연결을 덧붙였다: Closes %s#%s (브리지 + Development 연결 — "
-              "자동 close 는 저장소 설정이 막는다)" % (OPS_REPO, n))
+              "자동 close 는 저장소 설정이 막는다). %s 에도 되썼다 — 지우지 마라."
+              % (OPS_REPO, n, rel(body_path)))
 
     return body
 
