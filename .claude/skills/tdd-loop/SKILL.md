@@ -1,6 +1,6 @@
 ---
 name: tdd-loop
-description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 티켓에서 코드를 만지기 전에 밟는다. 시나리오 표(코멘트·승인) → red(실패하는 테스트·커밋·Draft PR·승인) → green+refactor(subagent tdd-green) → verify(subagent ac-verifier) → 사람 확인. 판정이 비대상이면 부르지 않는다. 새 세션에서 진행 흔적(시나리오 코멘트·red 커밋·Draft PR)을 발견했을 때도 이 스킬의 재개 절차다.
+description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 티켓에서 코드를 만지기 전에 밟는다. 시나리오 표(코멘트·승인) → red(실패하는 테스트·커밋·Draft PR·승인) → green+refactor(subagent tdd-green) → verify(subagent ac-verifier) → 사람 확인. 판정이 비대상이면 부르지 않는다. 새 세션이 진행 흔적(시나리오 코멘트·red 커밋·Draft PR)을 발견하면 이어가지 않고 사람에게 현황을 묻는다.
 ---
 
 # tdd-loop — 시나리오 → red → green · refactor → verify
@@ -22,11 +22,10 @@ description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 �
 
 ## 단계별 절차 — 그 단계에 들어갈 때 읽는다
 
-- **1. 시나리오** — AC 재조회 · 시그니처(타입 · 함수 · 오류 케이스 · 인터페이스) · GWT 표 · AC 커버리지 · 게시 · 승인: [scenarios.md](scenarios.md)
+- **1. 시나리오** — 시그니처(타입 · 함수 · 오류 케이스 · 인터페이스) · 층(더하는 것) · GWT 표 · AC 커버리지 · 게시 · 승인: [scenarios.md](scenarios.md)
 - **2. red** — stub 일괄 · 한 시나리오씩 · 실패의 종류 · 커밋 · Draft PR · 승인: [red.md](red.md)
 - **3. green + refactor** — `tdd-green` 호출 프롬프트 · 결과 블록 · blocked 처리: [green-refactor.md](green-refactor.md)
 - **4. verify** — preflight · `ac-verifier` 호출 프롬프트 · 사람 지시 · `ticket-report` 로: [verify.md](verify.md)
-- **재개** — 새 세션에서 흔적으로 단계를 판별하고 확인받기: [resume.md](resume.md)
 
 ## 상시 규약 — 어느 단계에서든
 
@@ -37,4 +36,5 @@ description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 �
 - **target 이 여럿이면** 판정 · 표 · 흐름은 target 마다다.
 - **티켓 코멘트 · PR 본문은 주 대화가 쓴다** — verifier 의 검수 코멘트만 예외(직접 게시). 코멘트 수정은 기록한 ID 로만.
 - **verifier 를 건너뛰고 스스로 대조표를 쓰지 않는다.**
+- **재개** — 새 세션이 이 티켓의 진행 흔적(시나리오 코멘트 · red 커밋 · Draft PR)을 보면 **이어가지 않는다.** 승인의 흔적은 남지 않으니 사람에게 묻는다: 지금 어느 단계이고 무엇이 승인됐는가. 답을 받은 단계의 파일로.
 - **러너 · 커버리지 도구를 설치하지 않는다** — 저장소의 결정이다. 러너가 없으면 애초에 판정이 비대상이었어야 한다.
