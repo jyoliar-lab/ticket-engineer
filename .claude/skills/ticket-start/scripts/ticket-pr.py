@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """PR 생성 — 단일 관문. squash 머지로 수확된 낡은 브랜치를 재정렬한 뒤 PR을 연다.
 
-사용: ticket-pr.py <ticket-number> --title <제목> --body-file <경로> [--repo <owner/name>]
+사용: ticket-pr.py <ticket-number> --title <제목> --body-file <경로> [--repo <owner/name>] [--draft]
+  --draft 는 TDD 흐름(tdd-loop)에서 red 커밋 직후 Draft 로 열 때. ready 전환은 사람 승인 뒤
+  agent 가 `gh pr ready` 로 한다 — 이 도구는 열기만 한다.
   worktree 는 workspace/target/<repo>/ticket-<N>/ 에서 스스로 찾는다 — target 이
   여럿이면 --repo 로 지정한다. 본문은 파일로 받는다(긴 본문 안전). 티켓 연결
   (`Closes jyoliar-lab/ops-workflow#<N>` — 브리지 + 이슈 Development 연결)은 본문에
@@ -254,6 +256,9 @@ def main() -> None:
     parser.add_argument("--title", required=True, help="PR 제목")
     parser.add_argument("--body-file", required=True, help="PR 본문 파일 (tmp/pr/)")
     parser.add_argument("--repo", help="owner/name — 이 티켓의 worktree 가 여럿일 때 지정")
+    parser.add_argument("--draft", action="store_true",
+                        help="Draft 로 연다 — TDD 흐름(tdd-loop)에서 red 커밋 직후. "
+                             "ready 전환(gh pr ready)은 사람 승인 뒤")
     args = parser.parse_args()
     n: str = args.ticket.lstrip("#")
 
@@ -267,9 +272,14 @@ def main() -> None:
     realign_and_push(wt, branch, default, mp)
 
     body = build_body(n, args.title, args.body_file)
-    url = run(["gh", "pr", "create", "-R", repo, "--head", branch, "--base", default,
-               "--title", args.title, "--body", body]).stdout.strip()
-    print("== PR 생성: %s" % url)
+    create_args: List[str] = ["gh", "pr", "create", "-R", repo, "--head", branch,
+                              "--base", default, "--title", args.title, "--body", body]
+
+    if args.draft:
+        create_args.append("--draft")
+
+    url = run(create_args).stdout.strip()
+    print("== PR 생성%s: %s" % (" (Draft)" if args.draft else "", url))
 
 
 if __name__ == "__main__":
