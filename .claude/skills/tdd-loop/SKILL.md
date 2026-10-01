@@ -22,7 +22,7 @@ description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 �
 
 ## 단계별 절차 — 그 단계에 들어갈 때 읽는다
 
-- **1. 시나리오** — 시그니처(타입 · 함수 · 오류 케이스 · 인터페이스) · 층(더하는 것) · GWT 표 · AC 커버리지 · 게시 · 승인: [scenarios.md](scenarios.md)
+- **1. 시나리오** — 시그니처(선언 블록) · 층 · GWT 표 · AC 커버리지 · 게시 · 승인: [scenarios.md](scenarios.md)
 - **2. red** — stub 일괄 · 한 시나리오씩 · 실패의 종류 · 커밋 · Draft PR · 승인: [red.md](red.md)
 - **3. green + refactor** — `tdd-green` 호출 프롬프트 · 결과 블록 · blocked 처리: [green-refactor.md](green-refactor.md)
 - **4. verify** — preflight · `ac-verifier` 호출 프롬프트 · 사람 지시 · `ticket-report` 로: [verify.md](verify.md)
