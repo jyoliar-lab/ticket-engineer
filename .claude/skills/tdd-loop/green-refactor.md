@@ -25,6 +25,8 @@ red 커밋의 테스트를 통과시키고 정리한 뒤 push 하라. 정의된 
 
 ### `result: ok`
 
+티켓 코멘트는 **없다** — 체크리스트와 커밋이 흔적이다.
+
 1. 커밋이 원격에 있는지: `git -C <worktree> log --oneline origin/<branch> -3`.
 2. 테스트 명령을 **네가 한 번 더 돌린다** — subagent 의 보고를 그대로 믿지 않는다. 전부 통과가 아니면 아래 blocked 와 같이 다룬다.
 3. PR 체크리스트 갱신 — `tmp/pr/<N>.md` 의 `- [ ] green` · `- [ ] refactor` 를 `[x]` 로. `refactor: skipped(...)` 면 `[x] refactor (건너뜀: <이유>)`:
@@ -38,15 +40,15 @@ red 커밋의 테스트를 통과시키고 정리한 뒤 push 하라. 정의된 
 멈춘다. 네가 닫을 결정이 아니다.
 
 1. 블록의 `blocked_on` · `blocked_reason` · `last_error` · `suggest` 와, subagent 가 남긴 미커밋 변경(`git -C <worktree> status --porcelain`)을 본다.
-2. **티켓에 코멘트를 남긴다** — 세션이 끊겨도 흔적이 남게. 그리고 채팅으로 사람에게:
+2. **티켓에 코멘트를 남긴다** — 세션이 끊겨도 흔적이 남게. 사람 결정으로 미통과를 남긴 채 커밋했을 때도 같은 꼴. **실패한 것만** 이름 — 통과 목록은 쓰지 않는다. 그리고 채팅으로 사람에게:
    ```markdown
-   ### green — 중단 (<target repo>)
+   ### green — 중단 | 부분 (<target repo>)
 
-   막힌 테스트: `<blocked_on>` — <blocked_reason>
-   마지막 오류: <last_error>
-   통과한 시나리오: <n>/<total>
-   제안: <suggest>
-   worktree 에 미커밋 변경 <k>파일 (그대로 둠)
+   커밋 `<sha 또는 없음>` · PR <URL>
+   실행: `<테스트 명령>` → pass <n> / fail <m>
+   미통과: `<이름>` — <한 줄 이유> (행 <k>)
+   제안: <시나리오 재검토 · 시그니처 수정 · 사람 디버깅>
+   worktree 미커밋 변경: <k>파일 (그대로 둠) | 없음
    ```
 3. **테스트를 고치지 않는다.** 사람의 답에 따라:
    - **시나리오 · 테스트가 틀렸다** → 미커밋 변경을 버리고(`git -C <worktree> checkout -- .` — 사람 승인 뒤) 표를 새 코멘트로 다시 내고 [scenarios.md](scenarios.md) 로. 그 뒤 red 커밋을 새로 올린다.

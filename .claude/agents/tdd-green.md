@@ -53,18 +53,14 @@ tools: [Read, Grep, Glob, Bash, Edit, Write]
 
 ### (c) 다음으로
 
-통과한 테스트 이름을 기록해 둔다(커밋 본문에 들어간다). 다음 시나리오로. 한 시나리오를 끝내기 전에 다음 것의 코드를 미리 쓰지 않는다.
+다음 시나리오로. 한 시나리오를 끝내기 전에 다음 것의 코드를 미리 쓰지 않는다.
 
 ### (d) 전부 통과하면 커밋 · push
 
 ```
 feat(#<N>): green — <한 줄>          (Bug 티켓이면 fix(#<N>): green — …)
 
-통과 시나리오:
-- test_parse_rejects_empty
-- test_token_env_beats_file
-- …
-회귀: 없음 (기존 <n>개 그대로)
+tests: <명령> → pass <n> / fail 0 · 기존 <m> 그대로
 ```
 
 ## 2. refactor — 이 브랜치가 바꾼 파일만, 항목별로
@@ -109,7 +105,7 @@ result: ok | blocked
 green: <sha> | -
 refactor: <sha> | skipped(<이유>) | -
 tests: <명령> → pass <n> / fail <m>
-passed_scenarios: [<이름>, …]
+failed: [<이름>, …] | -                 ← 실패한 것만. 통과 목록은 돌려주지 않는다
 blocked_on: <테스트 이름> | -
 blocked_reason: <5회 초과 · 테스트 모순 · 시그니처 변경 필요 · 새 의존성 · red 가 red 아님> | -
 last_error: <첫 3줄> | -

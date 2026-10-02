@@ -1,18 +1,13 @@
 ### TDD 시나리오 — jyoliar-lab/obs-toolkit
 
-#### 시그니처
+#### 타입 · 상수
 
 ```python
-# obs/core.py — 변경
+# obs/core.py — 변경. config_file_candidates · load_config 는 이름 · 형태 불변
 
 @dataclass
 class Config:
     config_path: Path | None                  # None = 설정 파일 없이 기본값
-
-def config_file_candidates(env: Mapping[str, str], home: Path | None = None) -> list[Path]: ...
-def load_config(env: Mapping[str, str] | None = None, home: Path | None = None) -> Config: ...
-    # ObsError: OBS_CONFIG 가 비어 있지 않은데 그 경로가 파일이 아니다(없음 · 디렉터리) — 문구에 경로 · OBS_CONFIG
-    # no-op: 암묵 후보(${CLAUDE_PLUGIN_DATA}/config.json · ~/.config/obs-toolkit/config.json)가 없는 것 · OBS_CONFIG 가 공백뿐
 ```
 
 관례: 깨진 JSON 과 같은 결 — `_read_config_file` 의 `ObsError("… — 사람에게")`. 공개 이름은 바뀌지 않는다.
@@ -27,6 +22,13 @@ bin/obs-doctor.py         같은 오류로 exit 1 (main_guard 그대로)
 ---
 
 #### load_config
+
+```python
+def load_config(env: Mapping[str, str] | None = None, home: Path | None = None) -> Config: ...
+    # ObsError: OBS_CONFIG 가 비어 있지 않은데 그 경로가 파일이 아니다(없음 · 디렉터리) — 문구에 경로 · OBS_CONFIG
+    # no-op: 암묵 후보(${CLAUDE_PLUGIN_DATA}/config.json · ~/.config/obs-toolkit/config.json)가 없는 것 · OBS_CONFIG 가 공백뿐
+```
+
 - 더하는 것: 명시 경로(`OBS_CONFIG`)와 암묵 후보를 다르게 다룬다
 
 **예외**
@@ -46,6 +48,11 @@ bin/obs-doctor.py         같은 오류로 exit 1 (main_guard 그대로)
 ---
 
 #### doctor_main (+ main_guard)
+
+```python
+def doctor_main(argv: Sequence[str] | None = None) -> None: ...    # 변경 없음 — ObsError 는 main_guard 가 exit 1
+```
+
 - 더하는 것: `load_config` 의 `ObsError` 를 삼키지 않는다 → exit 1. 문구는 다시 검사하지 않는다(1 의 것)
 
 **예외**
