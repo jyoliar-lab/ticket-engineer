@@ -145,7 +145,7 @@ def check_start_gate(issue, ancestors, n):
         except ValueError as e:
             raise Reject(
                 "거부: #%s 의 '근거 ADR' 절 표기를 읽을 수 없다 — %s" % (lvl["number"], e),
-                "  손으로 고치지 않는다 — ops-workflow 의 set-adr.py 로 재기입한 뒤 다시 시도하라.")
+                "  손으로 고치지 않는다 — 재기입은 사람의 것(ops-workflow 의 set-adr.py). 사람에게 알리고 기다린다.")
 
         for adr_id, path, _sha in entries or []:
             if adr_id in seen_adrs:
@@ -216,7 +216,7 @@ def check_dependencies(issue, n):
         "거부: 티켓 #%s 는 열린 선행에 막혀 있다 — 선행의 close(사람 검수) 전에는 착수하지 않는다." % n,
         *lines,
         "   선행이 close 된 뒤 다시 시도하라. 관계가 실제와 어긋났다고 보이면 사람에게 —",
-        "   갱신은 ops-workflow 의 set-deps.py 로 한다(사이드바 손편집 금지).")
+        "   갱신은 사람의 것(ops-workflow 의 set-deps.py)이다 — agent 는 알리기만 한다.")
 
 
 def parse_repos(body):
@@ -226,16 +226,16 @@ def parse_repos(body):
     except ValueError as e:
         raise Reject("거부: 티켓 '저장소' 절의 표기를 읽을 수 없다 — %s" % e,
                      "  손으로 고치지 않는다(본문과 보드 필드가 갈라진다) —",
-                     "  ops-workflow 의 set-repos.py 로 재기입한 뒤 다시 시도하라.")
+                     "  재기입은 사람의 것(ops-workflow 의 set-repos.py). 사람에게 알리고 기다린다.")
     if parsed is None:
         raise Reject("거부: 티켓에 '저장소' 절이 없다(절 도입 전 구식 티켓) — 대상을 추측하지 않는다.",
-                     "  ops-workflow 의 set-repos.py 로 소급 기입한 뒤 다시 시도하라. 사람에게.")
+                     "  절 기입은 사람의 것(ops-workflow 의 set-repos.py) — 사람에게 알리고 기다린다.")
     targets, no_target, refs = parsed
     if no_target:
         raise Reject("거부: 수정 대상(target)이 부재 선언(null) — 신규 저장소 생성 등 대상이 아직 없는 작업이다.",
                      "  ① 이름·위치(조직)·공개 여부를 사람과 확인한다 (추측하지 않는다)",
                      "  ② 합의되면 gh repo create 로 생성한다",
-                     "  ③ ops-workflow 의 set-repos.py --target-repo 로 티켓의 target 을 재기입한다",
+                     "  ③ 사람이 ops-workflow 의 set-repos.py 로 티켓의 target 을 기입한다",
                      "  ④ 이 도구를 다시 실행한다.")
     return targets, [r for r in refs if r not in targets]
 

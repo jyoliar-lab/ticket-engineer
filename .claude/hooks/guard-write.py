@@ -93,7 +93,7 @@ def main():
 
     if under(fp, os.path.join(ws, "ref")):
         out_deny("workspace/ref 는 읽기 전용이다(참조 저장소·정책 코퍼스 — ADR-0016의 ref). "
-                 "고쳐야 하면 사람과 target 승격 절차(CLAUDE.md §3)를 밟고 target worktree에서 하라. "
+                 "고쳐야 하면 멈추고 사람에게 알려라(CLAUDE.md §3) — 티켓의 target 갱신은 사람의 것이고, 그 뒤 target worktree에서 한다. "
                  "ops-workflow에 남길 것은 파일이 아니라 gh 코멘트로(컨트롤 플레인).")
 
     if under(fp, os.path.join(ws, "target", ".bare")):

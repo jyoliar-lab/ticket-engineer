@@ -93,8 +93,8 @@ def scope_checks(n, worktrees):
     try:
         parsed = parse_section(json.loads(r.stdout).get("body") or "")
     except ValueError as e:
-        return [(False, "⑤ 저장소: '저장소' 절의 표기를 읽을 수 없다 — %s — 손으로 고치지 말고 "
-                 "ops-workflow 의 set-repos.py 로 재기입한 뒤 다시." % e)]
+        return [(False, "⑤ 저장소: '저장소' 절의 표기를 읽을 수 없다 — %s — 손으로 고치지 않는다. "
+                 "재기입은 사람의 것(ops-workflow 의 set-repos.py) — 사람에게." % e)]
 
     if parsed is None:
         return [(True, "⑤ 저장소: 티켓에 '저장소' 절이 없다(절 도입 전 티켓) — 목록 대조 생략")]
