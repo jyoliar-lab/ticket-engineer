@@ -1,6 +1,6 @@
 ---
 name: ticket-report
-description: 티켓 완료 보고 절차 — preflight(PR·참조·close 키워드·게이트) 기계 확인 통과 후, Acceptance Criteria 항목별 대조 코멘트를 작성해 게시한다. 검수는 게시된 코멘트로 받고, 수정 지시는 코멘트 수정으로 반영한다. 작업이 끝났다고 판단되면 이 절차로 보고한다.
+description: 티켓 완료 보고 절차 — preflight 기계 확인을 통과한 뒤 Acceptance Criteria 항목별 대조 코멘트를 게시한다. 작업이 끝났다고 판단되면, 그리고 게시한 보고에 수정 지시가 왔을 때 이 절차다.
 ---
 
 # ticket-report — 완료 보고

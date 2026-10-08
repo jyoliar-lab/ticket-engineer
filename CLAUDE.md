@@ -3,7 +3,7 @@
 이 저장소는 **ops-workflow(`jyoliar-lab/ops-workflow`)의 티켓을 집행하는 엔지니어 agent의 하네스**다. 티켓을 **읽고**, 대상 코드 저장소에서 **일하고**, 결과를 **보고**한다.
 
 - **ADR 저작 규약은 알 필요가 없다.** 티켓과 티켓이 가리키는 문서(ADR·discussion)를 읽으면 된다 — 그 문서들은 참고 자료지 저작 대상이 아니다.
-- 이 하네스의 규약은 ops-workflow의 기존 관례와 사용자 합의에서 왔고, **개정은 밖에서 온다** — agent는 규약을 따르되 고치지 않는다.
+- 이 하네스의 규약은 ops-workflow의 기존 관례와 사용자 합의에서 왔고, **개정은 밖에서 온다**(§4).
 
 ---
 
@@ -15,7 +15,7 @@
   - **`workspace/target/.bare/<repo>.git`** — bare 저장소. **도구(`ticket-run.py`)만 만진다**.
   - **`workspace/ref/<repo>`** — 참조 저장소, **전부 읽기 전용**. 정책·티켓 코퍼스(`ref/ops-workflow`)도 여기 산다. 세션 시작 시 ref 전체가 최신화돼 있다. ops-workflow에 남길 것(코멘트)은 파일이 아니라 `gh`로 컨트롤 플레인에.
 - 준비·정렬은 손 git이 아니라 **`ticket-run.py`가 한다**(`ticket-start` skill) — 원격 브랜치가 진실의 원천이고, exit 코드가 다음 행동이다.
-- 쓰기는 `workspace/` 와 `tmp/` 아래에서만 한다. `tmp/`의 자리: `tmp/staging/` 마찰 로그·사람에게 넘길 제안(§4) · `tmp/github-issues/` 티켓 코멘트 초안(게시는 `gh --body-file`로).
+- 쓰기는 **티켓 worktree(`workspace/target/<repo>/ticket-<N>/`)와 `tmp/`** 아래에서만 한다 — `workspace/ref/`·`.bare/`·`workspace/` 직속은 쓰지 않는다. `tmp/`는 자유 쓰기 경로다 — 관례의 자리: `tmp/staging/` 마찰 로그·사람에게 넘길 제안(§4) · `tmp/github-issues/` 티켓 코멘트 초안(게시는 `gh --body-file`로) · `tmp/pr/` PR 본문 초안(`ticket-pr.py --body-file`) · `tmp/venv-<repo>/` 테스트 환경(§2-4). 그 밖의 스크래치도 `tmp/` 아래에 둔다.
 
 ## 2. 티켓 흐름 — 사람이 지정한다
 

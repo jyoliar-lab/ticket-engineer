@@ -111,7 +111,7 @@ def main():
         allow()
 
     out_deny(
-        "쓰기 경계 위반: %s — engineer는 workspace/** 와 tmp/** 에서만 쓴다. "
+        "쓰기 경계 위반: %s — engineer는 티켓 worktree(workspace/target/<repo>/ticket-<N>/)와 tmp/** 에서만 쓴다. "
         "하네스(CLAUDE.md·.claude/**)는 agent가 고치지 않는다 — "
         "개정 제안은 tmp/staging/에 써서 사람에게 넘겨라(CLAUDE.md §4)." % fp
     )

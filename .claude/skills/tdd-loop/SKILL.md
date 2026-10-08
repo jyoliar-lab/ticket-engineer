@@ -1,6 +1,6 @@
 ---
 name: tdd-loop
-description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 티켓에서 코드를 만지기 전에 밟는다. 시나리오 표(코멘트·승인) → red(실패하는 테스트·커밋·Draft PR·승인) → green+refactor(subagent tdd-green) → verify(subagent ac-verifier) → 사람 확인. 판정이 비대상이면 부르지 않는다. 새 세션이 진행 흔적(시나리오 코멘트·red 커밋·Draft PR)을 발견하면 이어가지 않고 사람에게 현황을 묻는다.
+description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 티켓에서 코드를 만지기 전에 밟는다. 시나리오 표 → red → green·refactor(subagent) → verify(subagent) → 사람 확인. 판정이 비대상이면 부르지 않는다. 진행 흔적(시나리오 코멘트·red 커밋·Draft PR)이 있는 티켓을 새 세션이 받았을 때도 이 스킬이다.
 ---
 
 # tdd-loop — 시나리오 → red → green · refactor → verify
