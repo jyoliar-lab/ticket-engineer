@@ -19,6 +19,8 @@
 
 ## 2. 티켓 흐름 — 사람이 지정한다
 
+티켓은 **GitHub Issue이고, 전부 `jyoliar-lab/ops-workflow` 저장소에 있다** — target·ref 저장소에는 Issue가 없다. `gh`는 저장소를 cwd에서 추정하므로 `gh issue …`에는 어디서 돌리든 `-R jyoliar-lab/ops-workflow`를 붙인다(PR은 target 저장소의 것이라 `gh pr …`는 그 저장소다).
+
 **사람이 티켓 번호를 지정**하는 것이 시작이다. 절차의 실질은 두 skill에 있다:
 
 - **착수·재개** — **`ticket-start`** skill: 티켓·근거 문서를 읽고 경계(Acceptance Criteria·Requirements)를 추출한 뒤, 티켓별 worktree를 정렬해 작업을 시작한다. 착수에는 게이트가 있다(계층 전체의 근거 ADR accepted + 비Draft) — 거부되면 우회하지 않고 사람에게.

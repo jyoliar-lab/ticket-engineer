@@ -37,7 +37,7 @@ PR: <URL>
 
 돌아오는 것은 **코멘트 URL 한 줄**이다. 산문이 붙어 있어도 그것으로 판단하지 않는다 — 코멘트가 정본이다.
 
-1. 코멘트가 실제로 게시됐는지 본다(`gh issue view <N> --json comments` 의 마지막).
+1. 코멘트가 실제로 게시됐는지 본다(`gh issue view <N> -R jyoliar-lab/ops-workflow --json comments` 의 마지막).
 2. verifier 가 반증 테스트를 worktree 에 남기지 않았는지 본다: `git -C <worktree> status --porcelain` 이 비어 있어야 한다. 남았으면 지운다 — 커밋하지 않는다.
 3. PR 체크리스트의 `- [ ] verify` 를 `[x]` 로, 본문에 검수 코멘트 링크 한 줄을 더한다:
    ```markdown
