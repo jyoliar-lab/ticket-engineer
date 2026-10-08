@@ -63,4 +63,4 @@ PR: <URL>
 
 - verifier 를 건너뛰고 스스로 대조표를 쓰는 것.
 - verifier 의 발견을 스스로 판정해 닫는 것("이 정도 하드코딩은 괜찮다") — 사람의 것.
-- 지시 전 `gh pr ready` · 머지 · close(hook 가 머지 · close 는 거부한다).
+- 지시 전 `gh pr ready` · 머지 · close.

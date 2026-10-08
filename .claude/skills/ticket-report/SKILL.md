@@ -9,7 +9,7 @@ description: 티켓 완료 보고 절차 — preflight(PR·참조·close 키워�
 
 ## 절차
 
-1. **preflight** — `preflight.py <N>` — **한 번의 실행이 티켓 스코프 전부를 검토한다**: 코멘트 전문을 보이고, 티켓의 target 목록↔worktree를 전수 대조하고, worktree마다 PR·참조·close 키워드·체크를 확인한다. (스킬 스크립트는 SessionStart hook가 PATH에 올린다 — bare name으로 실행한다.)
+1. **preflight** — `preflight.py <N>` — **한 번의 실행이 티켓 스코프 전부를 검토한다**: 코멘트 전문을 보이고, 티켓의 target 목록↔worktree를 전수 대조하고, worktree마다 PR·참조·close 키워드·체크를 확인한다. (스킬 스크립트는 PATH에 있다 — 맨 이름으로 실행한다.)
    - 하나라도 실패면 **보고하지 않는다** — 무엇이 왜 막혔는지는 스크립트가 말한다. 해결 후 재실행. (막힌 것이 코드가 아니라 **티켓**일 수 있다 — 티켓 갱신은 사람과 합의해서. CLAUDE.md §3)
 2. **대조표 작성** — 착수 때 추출한 **Acceptance Criteria 각 항목별로**: 항목 | 충족 방식 | 근거(코드 위치·확인 방법). PR 링크 포함 — **target 저장소별로 전부**.
    - 충족 못 한 항목이 있으면 보고가 아니라 **사람과 논의**가 먼저다.

@@ -14,18 +14,18 @@ description: 티켓 착수·재개 절차 — 티켓·근거 문서 읽기, Acce
    - **Acceptance Criteria** — 검수 기준이다. 그대로 `ticket-report`의 대조표 행이 된다.
    - **Requirements** — 지켜야 할 제약과 **의도적 미결정 축**("~은 범위 밖이다" 항목들)이다. 작업 중 그 축에 닿으면 **멈추고 사람에게**(CLAUDE.md §3). ("없음"이면 그대로 기록한다 — 빈칸과 다르다.)
    - **코멘트도 경계다** — 추가 요구·방향 수정은 본문이 아니라 코멘트로 오기도 한다. 코멘트에 요구·제약이 있으면 위 두 절과 **같은 무게로** 옮겨 적는다. (`ticket-run.py`도 실행 시 코멘트 전문을 다시 보인다 — 착수 후 쌓인 코멘트는 재개 시 그 출력으로 들어온다.)
-3. **근거 읽기** — 본문 **'근거 ADR' 절**(YAML의 `path`)이 가리키는 문서를 `workspace/ref/ops-workflow/`에서 읽는다. 절이 없는 리프는 **Context가 "왜"의 전부다** — discussion은 티켓에 링크되지 않는다. (ref 경로는 SessionStart hook가 세션 시작 시 최신화했다. 읽기 전용 — 저작 규약은 알 필요 없다.)
+3. **근거 읽기** — 본문 **'근거 ADR' 절**(YAML의 `path`)이 가리키는 문서를 `workspace/ref/ops-workflow/`에서 읽는다. 절이 없는 리프는 **Context가 "왜"의 전부다** — discussion은 티켓에 링크되지 않는다. (ref는 세션 시작 시 최신화돼 있다. 읽기 전용 — 저작 규약은 알 필요 없다.)
 4. **저장소 정렬** — 판단하지 말고 스크립트를 돌린다:
    ```bash
    ticket-run.py <N> [--slug <slug>]
    ```
-   (스킬 스크립트는 SessionStart hook가 PATH에 올린다 — 맨 이름으로 실행한다. 경로를 찾지 않는다.)
+   (스킬 스크립트는 PATH에 있다 — 맨 이름으로 실행한다. 경로를 찾지 않는다.)
    착수(원격 linked branch 생성·Status 전환)와 재개(진행 보고·worktree 정렬)를 스크립트가 판별한다 — 원격이 진실의 원천이고, target 저장소마다 수행된다. `--slug`는 새 착수에만 필요하다(소문자 kebab 3–6단어).
 
    **exit 코드가 다음 행동이다** — `0` 진행 / `1` 전제 거부 / `2` 제안 후 승인받아 진행 / `3` 보고만. **사유와 할 일은 스크립트가 그 자리에서 말한다** — 읽고 그대로 한다. 우회하지 않고, 파괴적 정리(`reset --hard`·`stash drop`·강제 checkout)는 exit가 무엇이든 하지 않는다.
    - 착수에는 게이트가 있다 — **계층 전체**(리프+부모)의 근거 ADR accepted + Status 비Draft. 거부 해소(ADR accept·Draft 해제·부모 되돌림)는 전부 사람의 일이다 — 보고하고 기다린다.
    - '저장소' 절이 없거나 target이 부재 선언(null)인 티켓도 거부된다 — 대상을 추측하지 않는다. 절의 기입·갱신은 사람의 것이다(CLAUDE.md §4): 어느 저장소여야 할지 짐작이 있으면 한 줄로 덧붙여 사람에게 알리고 기다린다.
-5. **작업 위치** — `workspace/target/<repo>/ticket-<N>/` (티켓별 worktree). 다른 티켓의 worktree·`workspace/target/.bare/`는 건드리지 않는다. 티켓에 나열된 ref는 ticket-run이 `workspace/ref/<repo>`에 **선제 clone해 뒀다** — ref는 비완전 목록이므로, 나열 밖 저장소가 더 필요하면 같은 경로에 직접 clone한다. ref는 **읽기만** — hook가 쓰기를 거부한다. PR 본문 초안은 `tmp/pr/`에 쓴다(`ticket-pr.py --body-file`).
+5. **작업 위치** — `workspace/target/<repo>/ticket-<N>/` (티켓별 worktree). 다른 티켓의 worktree·`workspace/target/.bare/`는 건드리지 않는다. 티켓에 나열된 ref는 ticket-run이 `workspace/ref/<repo>`에 **선제 clone해 뒀다** — ref는 비완전 목록이므로, 나열 밖 저장소가 더 필요하면 같은 경로에 직접 clone한다. ref는 **읽기만**. PR 본문 초안은 `tmp/pr/`에 쓴다(`ticket-pr.py --body-file`).
 6. **착수 요약** — 경계 2절 + 스크립트가 보인 상태 + 이해한 작업 계획 + **TDD 판정**을 사용자에게 보인다. 계획이 티켓과 어긋날 소지가 보이면 진행 전에 묻는다.
    - **TDD 판정은 고정 자리다** — `TDD: 대상 — <근거 한 줄>` 또는 `TDD: 비대상 — <근거 한 줄>`. 적지 않으면 착수 요약이 아니다. target 이 여럿이면 target 마다 적는다.
    - 기준은 한 문장이다: **변경 전에 · 저장소 안에서 · 이번 변경의 약속을 · 실패하는 테스트로 쓸 수 있는가.** 하나라도 아니면 비대상 — 렌더 · 플랜 · 배포 뒤에야 검증되는 저장소(Terraform · Ansible · k8s manifest) / 테스트 골격(러너 · 설정 · CI 잡)이 없는 저장소 / 이번 변경에 약속이 없는 경우(설정값 1줄 · 의존성 갱신 · 삭제 · 문서). "테스트 파일이 있다" 는 기준이 아니다 — 인프라 저장소의 smoke 테스트는 배포 뒤 실측이다. **Bug 는 생략 사유가 아니다** — 코드 저장소에서 버그는 곧 시나리오다(재현 테스트가 red).
