@@ -1,9 +1,9 @@
 ---
 name: tdd-loop
-description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 티켓에서 코드를 만지기 전에 밟는다. 시나리오 표 → red → green·refactor(subagent) → verify(subagent) → 사람 확인. 판정이 비대상이면 부르지 않는다. 진행 흔적(시나리오 코멘트·red 커밋·Draft PR)이 있는 티켓을 새 세션이 받았을 때도 이 스킬이다.
+description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 티켓에서 코드를 만지기 전에 밟는다. 시나리오 표 → red → red 검토(subagent) → green·refactor(subagent) → verify(subagent) → 사람 확인. 판정이 비대상이면 부르지 않는다. 진행 흔적(시나리오 코멘트·red 커밋·Draft PR)이 있는 티켓을 새 세션이 받았을 때도 이 스킬이다.
 ---
 
-# tdd-loop — 시나리오 → red → green · refactor → verify
+# tdd-loop — 시나리오 → red → red 검토 → green · refactor → verify
 
 **전제**: `ticket-start` 를 마쳤고 착수 요약에 `TDD: 대상 — <근거>` 를 적었다. 이 스킬은 그 뒤, 코드 전이다.
 
@@ -14,29 +14,29 @@ description: TDD 집행 순서 — 착수 요약의 판정이 "TDD: 대상"인 �
 | 단계 | 누가 | 남기는 것 | 끝나면 |
 |---|---|---|---|
 | **1. 시나리오** | 주 대화(너) | 시그니처 + 시나리오 표(GWT) + AC 커버리지 표 — 티켓 코멘트 | **멈춤 — 사람 승인** |
-| **2. red** | 주 대화(너) | red 커밋 · Draft PR · 실행 결과 코멘트 | **멈춤 — 사람 승인** |
+| **2. red** | 주 대화(너) → subagent `tdd-red-reviewer`(opus) → 주 대화 | red 커밋 → 보강 커밋(있으면) → Draft PR · 완료 코멘트 | 흐름 — 표의 문제면 **멈춤**(표 재승인) |
 | **3. green + refactor** | subagent `tdd-green`(opus) | green 커밋 · refactor 커밋 | 흐름 — 체크리스트 갱신 |
 | **4. verify** | subagent `ac-verifier`(Fable) | 대조표 + 발견 — 티켓 코멘트 | **멈춤 — 사람이 다음을 지시** |
 
-승인은 채팅으로 온다. 흔적은 남기지 않는다 — 다음 산출물(red 커밋 · green 커밋)이 곧 흔적이다.
+승인은 채팅으로 온다. 흔적은 남기지 않는다 — 다음 산출물(red 커밋 · green 커밋)이 곧 흔적이다. red 의 끝은 **완료 코멘트**가 말한다 — 검토자 복귀 뒤 주 대화가 쓴다.
 
 ## 단계별 절차 — 그 단계에 들어갈 때 읽는다
 
 - **1. 시나리오** — 시그니처(선언 블록) · 층 · GWT 표 · AC 커버리지 · 게시 · 승인: [scenarios.md](scenarios.md)
-- **2. red** — stub 일괄 · 한 시나리오씩 · 실패의 종류 · 커밋 · Draft PR · 승인: [red.md](red.md)
+- **2. red** — stub 일괄 · 한 시나리오씩 · 실패의 종류 · 커밋 · `tdd-red-reviewer` 호출 · 복귀 · Draft PR · 완료 코멘트: [red.md](red.md). 단언 · Given 의 변별력 기준: [strength.md](strength.md)
 - **3. green + refactor** — `tdd-green` 호출 프롬프트 · 결과 블록 · blocked 처리: [green-refactor.md](green-refactor.md)
 - **4. verify** — preflight · `ac-verifier` 호출 프롬프트 · 사람 지시 · `ticket-report` 로: [verify.md](verify.md)
 
 ## 상시 규약 — 어느 단계에서든
 
 - **스크립트(`ticket-pr.py` · `preflight.py` · `ticket-run.py`)는 PATH 에 있다** — 맨 이름으로 부른다. 경로를 찾으러 가지 않는다.
-- **승인 없이 다음 단계로 넘어가지 않는다.** 표 뒤 · red 뒤 · verify 뒤.
-- **red 뒤에 소스 본문을 쓰지 않는다. green 뒤에 테스트를 고치지 않는다.** 테스트가 틀렸으면 사람에게 — 승인 뒤 red 로 되돌아간다. 조용히 고쳐 통과시키는 것이 TDD 를 무너뜨리는 정확한 경로다.
+- **승인 없이 다음 단계로 넘어가지 않는다.** 표 뒤 · verify 뒤. red 뒤는 사람이 아니라 검토자다 — 검토자를 건너뛰지 않는다.
+- **red 뒤에 소스 본문을 쓰지 않는다. green 뒤에 테스트를 고치지 않는다.** 테스트를 고치는 길은 red 로 되돌아가는 것뿐이다 — 표의 문제면 재승인 뒤, 그 뒤 검토자부터 다시. 조용히 고쳐 통과시키는 것이 TDD 를 무너뜨리는 정확한 경로다.
 - **시나리오는 Given / When / Then 이고, 테스트 코드는 그 세 부분이 구분돼 읽힌다** — 주석 한 줄씩(`# given` · `# when` · `# then`, 저장소가 AAA 를 쓰면 그 이름으로). 이름이 아니라 구분이 규칙이다.
 - **시나리오가 틀렸음을 알게 되면** 표를 새 코멘트로 다시 내고 재승인 — 어느 단계에서든.
 - **target 이 여럿이면** 판정 · 표 · 흐름은 target 마다다.
 - **티켓 코멘트 · PR 본문은 주 대화가 쓴다** — verifier 의 검수 코멘트만 예외(직접 게시). 코멘트 수정은 기록한 ID 로만.
 - **보고(코멘트 · 커밋 본문)는 수와 예외만, 한 화면** — 테스트 이름을 전수 나열하지 않는다. 원천은 러너 출력과 diff 다.
 - **verifier 를 건너뛰고 스스로 대조표를 쓰지 않는다.**
-- **재개** — 새 세션이 이 티켓의 진행 흔적(시나리오 코멘트 · red 커밋 · Draft PR)을 보면 **이어가지 않는다.** 승인의 흔적은 남지 않으니 사람에게 묻는다: 지금 어느 단계이고 무엇이 승인됐는가. 답을 받은 단계의 파일로.
+- **재개** — 새 세션이 이 티켓의 진행 흔적(시나리오 코멘트 · red 커밋 · red 완료 코멘트 · Draft PR · 체크리스트 · 검수 코멘트)을 보면 **이어가지 않는다.** red 커밋은 있는데 완료 코멘트가 없으면 검토자부터다(red.md §5). 그 밖 — 표 승인 · verify 뒤 지시 — 는 흔적이 없으니 사람에게 묻는다: 지금 어느 단계이고 무엇이 승인됐는가. 답을 받은 단계의 파일로.
 - **저장소가 정하지 않은 러너 · 커버리지 도구를 들이지 않는다.** 저장소가 핀한 것(CI · README)은 착수 요약의 테스트 명령대로 `tmp/venv-<repo>/` 에서 돈다(CLAUDE.md §2④). 러너가 없으면 애초에 판정이 비대상이었어야 한다.

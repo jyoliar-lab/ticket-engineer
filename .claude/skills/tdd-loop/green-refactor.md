@@ -9,7 +9,7 @@ Agent 도구 · `subagent_type: tdd-green`. 입력과 반환 요청만 — 규�
 ```
 티켓 #<N> (<Task|Bug>) · target <owner/repo>
 worktree: <절대 경로 — workspace/target/<repo>/ticket-<N>/>
-red 커밋: <sha>[, <sha>] (승인됨)
+red 커밋: <sha>[, <sha>] (검토 완료 — 보강 커밋 포함)
 테스트 명령: <예: python -m pytest / go test ./... / npm test>
 
 red 커밋의 테스트를 통과시키고 정리한 뒤 push 하라. 정의된 결과 블록 하나로 돌려달라.
@@ -51,7 +51,7 @@ red 커밋의 테스트를 통과시키고 정리한 뒤 push 하라. 정의된 
    worktree 미커밋 변경: <k>파일 (그대로 둠) | 없음
    ```
 3. **테스트를 고치지 않는다.** 사람의 답에 따라:
-   - **시나리오 · 테스트가 틀렸다** → 미커밋 변경을 버리고(`git -C <worktree> checkout -- .` — 사람 승인 뒤) 표를 새 코멘트로 다시 내고 [scenarios.md](scenarios.md) 로. 그 뒤 red 커밋을 새로 올린다.
+   - **시나리오 · 테스트가 틀렸다** → 미커밋 변경을 버리고(`git -C <worktree> checkout -- .` — 사람 승인 뒤) 표를 새 코멘트로 다시 내고 [scenarios.md](scenarios.md) 로. 그 뒤 [red.md](red.md) 의 흐름대로 — 새 red 커밋 → 검토자 → 완료 코멘트.
    - **AC 가 틀렸다** → 티켓 갱신은 사람과(CLAUDE.md §3). 갱신 뒤 시나리오부터.
    - **구현이 부족했을 뿐이다** → 사람의 힌트를 **프롬프트에 넣지 않고** 다시 부른다. 힌트가 필요할 정도면 테스트가 명세로 부족한 것이니, 그 힌트는 테스트에 들어가야 한다 — 다시 시나리오로.
    - **새 의존성이 필요하다** → 설치는 저장소의 결정(CLAUDE.md §2④ 조사 후 설치). 사람이 승인하면 red 로 돌아가 의존성을 반영한 뒤 다시.

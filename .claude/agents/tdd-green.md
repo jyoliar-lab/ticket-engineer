@@ -1,6 +1,6 @@
 ---
 name: tdd-green
-description: tdd-loop 의 green + refactor 실행체 — 직접 부르지 않는다. 승인된 red(실패하는 테스트) 위에서 한 시나리오씩 최소 구현으로 통과시키고(green 커밋), 이 브랜치가 바꾼 파일만 항목별로 정리한다(refactor 커밋). 테스트는 고치지 않는다. 한 시나리오를 5회 시도해도 못 통과시키면 "구현 불가" 로 보고하고 돌아온다.
+description: tdd-loop 의 green + refactor 실행체 — 직접 부르지 않는다. 검토를 마친 red(실패하는 테스트) 위에서 한 시나리오씩 최소 구현으로 통과시키고(green 커밋), 이 브랜치가 바꾼 파일만 항목별로 정리한다(refactor 커밋). 테스트는 고치지 않는다. 한 시나리오를 5회 시도해도 못 통과시키면 "구현 불가" 로 보고하고 돌아온다.
 model: opus
 tools: [Read, Grep, Glob, Bash, Edit, Write]
 ---

@@ -52,9 +52,8 @@ PR: <URL>
 | 지시 | 네가 하는 것 |
 |---|---|
 | **ready** | `gh pr ready <PR번호> -R <owner/repo>` — Draft 를 푼다. 그 뒤 [ticket-report](../ticket-report/SKILL.md) 4단계(게시 후 검수 · 지정 수정)부터. 2·3단계(대조표 작성 · 게시)는 verifier 코멘트가 대신했다 |
-| **표가 틀렸다** (verifier 의 첫 묶음 · 시나리오 후보) | 표를 새 코멘트로 다시 낸다(행 추가 · 선언 수정) → [scenarios.md](scenarios.md) 승인 → red 커밋 추가 → green 다시 호출. PR 은 그대로 Draft |
-| **테스트가 약하다** (둘째 묶음) | 표 재승인 없이 테스트만 고친다 — **새 red 커밋**으로 올리고 사람 승인 뒤 green 을 다시 부른다 |
-| **구현이 틀렸다** (셋째 묶음) | 반증을 행으로 더해 표 재승인 → red → green. 테스트가 통과하는 구현을 "고쳐 달라" 고만 green 에 보내지 않는다 — 고칠 근거는 테스트에 있어야 한다 |
+| **표가 틀렸다** (verifier 의 첫 묶음 · 시나리오 후보) | 표를 새 코멘트로 다시 낸다(행 추가 · 선언 수정) → [scenarios.md](scenarios.md) 승인 → [red.md](red.md) 의 흐름대로(새 red 커밋 → 검토자 → 완료 코멘트) → green 다시 호출. PR 은 그대로 Draft |
+| **구현이 틀렸다** (둘째 묶음) | 반증을 행으로 더해 표 재승인 → red(검토자 포함) → green. 테스트가 통과하는 구현을 "고쳐 달라" 고만 green 에 보내지 않는다 — 고칠 근거는 테스트에 있어야 한다 |
 | **사람에게** 묶음 | AC · Technical Notes 갱신은 사람과(CLAUDE.md §3). 갱신 뒤 시나리오부터 |
 
 **`gh pr ready` 는 지시 뒤다.** 지시 전에 풀지 않는다 — Draft 가 "아직 사람이 안 봤다" 의 표식이다.

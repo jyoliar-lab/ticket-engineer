@@ -26,7 +26,7 @@
 - **착수·재개** — **`ticket-start`** skill: 티켓·근거 문서를 읽고 경계(Acceptance Criteria·Requirements)를 추출한 뒤, 티켓별 worktree를 정렬해 작업을 시작한다. 착수에는 게이트가 있다(계층 전체의 근거 ADR accepted + 비Draft) — 거부되면 우회하지 않고 사람에게.
 - **완료 보고** — **`ticket-report`** skill: 기계 확인을 통과한 뒤 Acceptance Criteria 항목별 대조를 티켓 코멘트로 게시한다.
 
-착수 요약에는 **TDD 판정**이 고정 자리로 있다(`ticket-start` ⑥). 대상이면 코드를 만지기 전에 **`tdd-loop`** skill — 시나리오 표 · red · green · refactor · verify — 를 밟는다. 표 뒤와 red 뒤에 사람의 승인을 기다리고, verifier 의 보고 뒤 사람이 다음을 지시한다. 단계 제약은 규약이다 — 막는 것은 없고, 커밋 diff 와 코멘트로 읽힌다.
+착수 요약에는 **TDD 판정**이 고정 자리로 있다(`ticket-start` ⑥). 대상이면 코드를 만지기 전에 **`tdd-loop`** skill — 시나리오 표 · red · red 검토 · green · refactor · verify — 를 밟는다. 표 뒤에 사람의 승인을 기다리고, verifier 의 보고 뒤 사람이 다음을 지시한다. 단계 제약은 규약이다 — 막는 것은 없고, 커밋 diff 와 코멘트로 읽힌다.
 
 두 skill 사이, 작업 중의 규약:
 
