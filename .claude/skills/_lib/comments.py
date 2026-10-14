@@ -10,15 +10,18 @@ import json
 from _common import OPS_REPO, block, run
 
 
-def fetch_all(n):
-    """티켓의 코멘트 전량 → [{login, date, body}] (시간순).
+def fetch_all(n: str) -> "list[dict[str, object]]":
+    """티켓의 코멘트 전량 → [{id, url, login, date, body}] (시간순).
 
     REST --paginate 로 전 페이지를 가져온다 — 잘림 축 자체가 없다
-    (--slurp: 페이지별 배열을 배열의 배열로 받아 평탄화)."""
+    (--slurp: 페이지별 배열을 배열의 배열로 받아 평탄화).
+    id · url 은 코멘트를 제자리에서 고치는 관문(scenario-post)이 쓴다."""
     out = run(["gh", "api",
                "repos/%s/issues/%s/comments?per_page=100" % (OPS_REPO, n),
                "--paginate", "--slurp"]).stdout
-    return [{"login": (c.get("user") or {}).get("login") or "?",
+    return [{"id": c.get("id"),
+             "url": c.get("html_url") or "",
+             "login": (c.get("user") or {}).get("login") or "?",
              "date": (c.get("created_at") or "?")[:10],
              "body": c.get("body") or ""}
             for page in json.loads(out or "[]") for c in page]

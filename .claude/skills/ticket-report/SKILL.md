@@ -24,7 +24,7 @@ description: 티켓 완료 보고 절차 — preflight 기계 확인을 통과�
 
 ## TDD 티켓이면 — 대조표는 verifier 의 것
 
-착수 요약의 판정이 `TDD: 대상` 이었던 티켓은 `tdd-loop` 가 이 절차의 앞을 대신한다: preflight 는 그 4단계에서 이미 돌았고, 대조표는 **`ac-verifier` subagent 가 게시**했다(근거 칸 = 테스트 이름). 2·3단계를 다시 하지 않는다 — 4단계(게시 후 검수 · 지정 수정)부터다. 사람이 verifier 코멘트를 읽고 지시한 뒤에만 `gh pr ready` 로 Draft 를 푼다 — 지시 전에 풀지 않는다.
+착수 요약의 판정이 `TDD: 대상` 이었던 티켓은 `tdd-loop` 가 이 절차의 앞을 대신한다: preflight 는 그 4단계에서 이미 돌았고, 대조표는 **`ac-verifier` subagent 가 단위마다 게시**했다(근거 칸 = 테스트 이름 · 단위 하나면 코멘트 하나). 2·3단계를 다시 하지 않는다 — 4단계(게시 후 검수 · 지정 수정)부터다. 사람이 verifier 코멘트를 읽고 지시한 뒤에만 `gh pr ready` 로 Draft 를 푼다 — 지시 전에 풀지 않는다.
 
 ## preflight는 완료를 판정하지 않는다
 

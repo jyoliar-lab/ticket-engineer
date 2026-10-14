@@ -7,6 +7,7 @@
       "Bash(ticket-clean.py:*)",
       "Bash(ticket-pr.py:*)",
       "Bash(preflight.py:*)",
+      "Bash(scenario-post.py:*)",
       "Bash(gh issue view:*)",
       "Bash(gh issue comment:*)",
       "Bash(gh issue list:*)",
@@ -77,5 +78,17 @@
         ]
       }
     ]
+  },
+  "extraKnownMarketplaces": {
+    "obs-toolkit": {
+      "source": {
+        "source": "github",
+        "repo": "jyoliar-lab/obs-toolkit",
+        "sha": "37a80707fd73f028bf2b2981604a50f9a49079b1"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "obs-toolkit@obs-toolkit": true
   }
 }

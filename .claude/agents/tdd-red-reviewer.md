@@ -15,7 +15,9 @@ tools: [Read, Grep, Glob, Bash, Edit, Write]
 
 ## 받는 것
 
-티켓 번호 · target 저장소 · worktree 경로 · 시나리오 코멘트 URL · red 커밋 sha(들) · 저장소의 테스트 명령.
+티켓 번호 · target 저장소 · **단위 이름** · worktree 경로 · 그 단위의 시나리오 코멘트 URL · 색인 코멘트 URL(단위가 하나면 없음) · red 커밋 sha(들) · 저장소의 테스트 명령.
+
+표는 그 단위의 것이다 — 다른 단위의 행은 대조하지 않는다. 첫 단위의 red 는 색인의 공통 함수 행과 공통 타입 stub 도 담는다 — 색인 URL 이 왔으면 공통 블록을 함께 읽는다. 공유 타입이 이미 놓여 있으면(뒤 단위) 그것은 이번 stub 범위가 아니다.
 
 티켓 본문 · AC 는 받지 않는다 — AC ↔ 표는 verify 의 것이다.
 
@@ -23,7 +25,7 @@ tools: [Read, Grep, Glob, Bash, Edit, Write]
 
 ### 1. 대조 — 표 ↔ 테스트
 
-시나리오 코멘트를 읽고(`gh api` 로 코멘트 본문) red 커밋의 diff(`git -C <worktree> show <sha>`)와 대조한다.
+시나리오 코멘트를 읽고(`gh api` 로 코멘트 본문 — 머리 아래 `> v<n>` 줄이 판이다) red 커밋의 diff(`git -C <worktree> show <sha>`)와 대조한다.
 
 | 보는 것 | 어긋나면 |
 |---|---|

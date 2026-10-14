@@ -1,4 +1,4 @@
-### TDD 시나리오 — jyoliar-lab/obs-toolkit
+### TDD 시나리오 — jyoliar-lab/obs-toolkit — 명시 설정 경로
 
 #### 타입 · 상수
 

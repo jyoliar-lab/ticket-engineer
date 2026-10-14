@@ -24,6 +24,7 @@ ops-workflow의 **티켓(GitHub Issue)을 집행하는 엔지니어 agent의 하
 | `gh pr create` · force push | 같은 hook가 거부하고 `ticket-pr.py` 관문으로 보낸다 (재정렬 push의 `--force-with-lease`는 그 안에만) |
 | 착수 게이트(계층 전체의 근거 ADR accepted · Status Todo/In Progress · 열린 선행 없음) | `ticket-run.py` — exit 코드가 다음 행동 |
 | 완료 보고 전제(PR 상태 · 티켓 참조 · close 키워드 · 체크 · target↔worktree 대조) | `preflight.py` — 실패 시 exit 1 |
+| TDD 시나리오 코멘트의 게시 · 제자리 갱신 · 승인 표식 · 진행 행(red · green · verify — 단계마다 행 하나를 덧붙여 되감기가 보인다) — 머리 줄(`### TDD 시나리오 — <repo> — <단위>`)이 열쇠라 세션이 바뀌어도 같은 코멘트를 PATCH 한다 · 판 · 승인 줄 · 진행 표는 스크립트가 쓴다 · 한도 초과 · 손으로 쓴 판 줄 · 진행 표 · 풀 수 없는 `{url:}` · 승인 전 진행은 거부 | `scenario-post.py` — 변경 이력은 GitHub 코멘트 편집 이력(discussion 261014_1530) |
 | 머지 게이트 | 대상 저장소의 required check |
 | 클러스터 쓰기 · Secret 열람 | agent ServiceAccount(`system:serviceaccount:agents:ticket-engineer-agent`)의 RBAC에 권한이 없다 — 클러스터 전역 읽기 전용 |
 | `workspace/ref/*` 최신화 · 스킬 `scripts/`의 PATH 등록(맨 이름 실행) | SessionStart hook `refresh-refs.py` · `session-path.sh` |

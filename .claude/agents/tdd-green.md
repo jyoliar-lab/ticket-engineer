@@ -11,7 +11,7 @@ tools: [Read, Grep, Glob, Bash, Edit, Write]
 
 ## 받는 것
 
-티켓 번호와 타입(커밋 메시지에만 쓴다) · target 저장소 · worktree 경로(`workspace/target/<repo>/ticket-<N>/`) · red 커밋 sha(들) · 저장소의 테스트 명령.
+티켓 번호와 타입 · 단위 이름(둘 다 커밋 메시지에만 쓴다) · target 저장소 · worktree 경로(`workspace/target/<repo>/ticket-<N>/`) · 이 단위의 red 커밋 sha(들) · 저장소의 테스트 명령.
 
 **티켓 본문도 시나리오 표도 받지 않는다.** 의존성을 실제로 붙이는지 fake 로 대는지도 테스트 코드가 이미 보여 준다(픽스처 · 대역 · 설정).
 
@@ -58,7 +58,7 @@ tools: [Read, Grep, Glob, Bash, Edit, Write]
 ### (d) 전부 통과하면 커밋 · push
 
 ```
-feat(#<N>): green — <한 줄>          (Bug 티켓이면 fix(#<N>): green — …)
+feat(#<N>): green — <단위> — <한 줄>          (Bug 티켓이면 fix(#<N>): green — <단위> — …)
 
 tests: <명령> → pass <n> / fail 0 · 기존 <m> 그대로
 ```
@@ -82,7 +82,7 @@ tests: <명령> → pass <n> / fail 0 · 기존 <m> 그대로
 **항목별로** — 후보 하나 적용 → 전체 테스트 → 통과면 다음 · **실패면 그 항목만 즉시 되돌린다**(`git checkout -- <file>` 또는 손으로). 정리가 동작을 바꿨다는 뜻이다. 후보가 없으면 **건너뛴다** — 빈 커밋을 만들지 않는다.
 
 ```
-refactor(#<N>): <한 줄>
+refactor(#<N>): <단위> — <한 줄>
 
 | # | 파일 | 기준 | 변경 |
 |---|---|---|---|
