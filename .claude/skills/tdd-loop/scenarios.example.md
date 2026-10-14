@@ -42,7 +42,7 @@ def load_config(env: Mapping[str, str] | None = None, home: Path | None = None) 
 
 | # | Given | When | Then | 출처 | 테스트 이름 | 티어 | 의존성 |
 |---|---|---|---|---|---|---|---|
-| 3 | `OBS_CONFIG` 없음 · 암묵 후보 전부 없음 | `load_config(env, home)` | 기본값 · `config_path is None` | AC-2 | 기존: `test_defaults_when_nothing_set` | contracts | — |
+| 3 | `OBS_CONFIG` 없음 · 암묵 후보 전부 없음 | `load_config(env, home)` | 기본값 · `config_path is None` | AC-2 | 기존 `test_defaults_when_nothing_set` | contracts | — |
 | 4 | `OBS_CONFIG` 가 공백뿐 · 암묵 후보 전부 없음 | `load_config(env, home)` | 미설정과 같다 — 기본값 | 추가 | `test_blank_explicit_config_is_unset` | contracts | fake(env · tmp) |
 
 ---
@@ -64,6 +64,13 @@ def doctor_main(argv: Sequence[str] | None = None) -> None: ...    # 변경 없�
 ---
 
 티어 · 의존성 — 단언이 전부 예외 · dataclass 값 · exit 코드라 contracts. 5 에서 `doctor` 를 대역으로 바꾸는 이유: 지금 코드에서 red 가 exit 0 으로 실패해야 재현이고, 대역이 없으면 실 게이트웨이로 probe 가 나간다.
+
+#### 기존 테스트 처분
+
+| 기존 테스트 | 처분 | 행 |
+|---|---|---|
+| `test_defaults_when_nothing_set` | 그대로 | 3 |
+| `test_explicit_config_missing_falls_back` | 삭제 — 폴백이 이제 오류다(행 1 이 반대를 단언) | — |
 
 #### AC 커버리지
 
