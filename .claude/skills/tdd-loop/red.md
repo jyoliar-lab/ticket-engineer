@@ -56,7 +56,7 @@
 | 단언 실패(`expected X, got Y`) — 기존 코드가 시나리오와 다르게 동작 | **의도된 red** | 다음 행 |
 | `ImportError` · `Cannot find module` · 컴파일 오류 · `is not a function` | **red 가 아니다** — 카운트조차 안 됐다. stub 이 모자라거나 시그니처가 안 맞는다 | stub 을 보강한다(§1). 이 상태로 다음 행에 가지 않는다 |
 | 문법 오류 · import 경로 오타 · 모킹 설정 실수 | **테스트 표현의 문제** | 테스트를 고친다 — 시나리오를 바꾸는 것이 아니다 |
-| **통과했다** | 종류가 `가드` 거나 출처가 `green 뒤` 면 정상 — green 뒤 행은 검토자의 사고실험이 red 를 대신한다. 아니면 **동어반복 후보** — 모양은 [strength.md](strength.md) 패턴 표의 마지막 행 | 단언을 구체화해 다시 돌린다. 그래도 통과하면 시나리오가 틀린 것 — 파일을 고쳐 `scenario-post.py` 로 PATCH 하고 [scenarios.md](scenarios.md) §5 의 재승인으로 |
+| **통과했다** | 종류가 `가드` 거나 출처가 `green 뒤` 면 정상. 아니면 **동어반복 후보** — 모양은 [strength.md](strength.md) 패턴 표의 마지막 행 | 단언을 구체화해 다시 돌린다. 그래도 통과하면 시나리오가 틀린 것 — 파일을 고쳐 `scenario-post.py` 로 PATCH 하고 [scenarios.md](scenarios.md) §5 의 재승인으로 |
 
 의심스러우면 한 줄 기록해 둔다(red 행의 예외에 들어간다): `#3 — NotImplementedError(parse) 로 실패, 의도 일치`.
 
