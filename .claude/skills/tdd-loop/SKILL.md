@@ -19,7 +19,7 @@ description: TDD 집행 순서 — 착수 판정이 "TDD: 대상"인 티켓에�
 | **1. 시나리오** — 단위마다 | 주 대화(너) | 단위 코멘트 — 시그니처 + GWT 표 + 그 단위의 AC 커버리지. 게시 · 갱신 · 승인 표식 · 진행 행은 `scenario-post.py` | **멈춤 — 그 단위의 승인** |
 | **2. red** — 단위마다 | 주 대화(너) → subagent `tdd-red-reviewer`(opus) → 주 대화 | red 커밋 → 보강 커밋(있으면) → Draft PR(첫 단위) · 단위 코멘트에 red 행 | 흐름 — 표의 문제면 **멈춤**(그 단위 PATCH · 재승인) |
 | **3. green + refactor** — 단위마다 | subagent `tdd-green`(opus) | green 커밋 · refactor 커밋 · 단위 코멘트에 green 행(둘을 함께) | 흐름 |
-| **4. verify** — 단위마다 | subagent `ac-verifier`(Fable) | 그 단위의 대조표 + 발견 — 검수 코멘트 · 단위 코멘트에 verify 행(링크) | **멈춤 — 사람이 다음을 지시**(다음 단위 · ready · 되감기) |
+| **4. verify** — 단위마다 | subagent `tdd-ac-verifier`(Fable) | 그 단위의 대조표 + 발견 — 검수 코멘트 · 단위 코멘트에 verify 행(링크) | **멈춤 — 사람이 다음을 지시**(다음 단위 · ready · 되감기) |
 
 **단위 코멘트가 그 단위의 스레드다.** Issue 코멘트에는 답글이 없으므로, 시나리오 아래 진행 표를 같은 코멘트에 두고 단계를 지날 때마다 **행 하나를 덧붙인다** — 행 하나 = 단계 하나(red · green · verify. green 행이 refactor 까지 담는다). 되감기는 행 순서로 보인다: red → green → verify → red → verify. 이슈 스트림은 색인 + 단위 + 검수 코멘트로 끝나고, 단위 하나의 위치는 코멘트 하나의 마지막 행으로 읽힌다. 승인은 채팅으로 단위 이름과 함께 온다. 승인의 흔적은 코멘트 머리의 승인 줄(`--approve`)이다. red 의 끝은 그 단위의 **red 행**이 말한다 — 검토자 복귀 뒤 주 대화가 덧붙인다.
 
@@ -28,7 +28,7 @@ description: TDD 집행 순서 — 착수 판정이 "TDD: 대상"인 티켓에�
 - **0 · 1. 색인 · 시나리오** — 시그니처(선언 블록) · 층 · 단위 나누기 · GWT 표 · AC 커버리지 · 게시 · 승인: [scenarios.md](scenarios.md)
 - **2. red** — stub 일괄 · 한 시나리오씩 · 실패의 종류 · 커밋 · `tdd-red-reviewer` 호출 · 복귀 · Draft PR · red 행: [red.md](red.md). 단언 · Given 의 변별력 기준: [strength.md](strength.md)
 - **3. green + refactor** — `tdd-green` 호출 프롬프트 · 결과 블록 · blocked 처리: [green-refactor.md](green-refactor.md)
-- **4. verify** — preflight · `ac-verifier` 호출 프롬프트 · 사람 지시 · `ticket-report` 로: [verify.md](verify.md)
+- **4. verify** — preflight · `tdd-ac-verifier` 호출 프롬프트 · 사람 지시 · `ticket-report` 로: [verify.md](verify.md)
 
 ## 상시 규약 — 어느 단계에서든
 

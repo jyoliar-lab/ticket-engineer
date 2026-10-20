@@ -1,6 +1,6 @@
 # 4. verify — 다른 눈이 읽고, 사람이 결론을 낸다
 
-주 대화는 여기서 **판정하지 않는다.** `preflight.py` 로 기계 확인을 지나고, subagent `ac-verifier`(`.claude/agents/ac-verifier.md` · Fable)를 부르고, 사람의 지시를 기다린다. verifier 가 무엇을 검사하는지는 그 정의가 전부 갖고 있다. **단위마다** 한 번이다 — 그 단위의 담당 AC 만 대조한다.
+주 대화는 여기서 **판정하지 않는다.** `preflight.py` 로 기계 확인을 지나고, subagent `tdd-ac-verifier`(`.claude/agents/tdd-ac-verifier.md` · Fable)를 부르고, 사람의 지시를 기다린다. verifier 가 무엇을 검사하는지는 그 정의가 전부 갖고 있다. **단위마다** 한 번이다 — 그 단위의 담당 AC 만 대조한다.
 
 ## preflight 먼저
 
@@ -18,7 +18,7 @@ preflight.py <N>
 
 ## 호출
 
-Agent 도구 · `subagent_type: ac-verifier`. green 과 달리 **맥락을 전부 준다** — verifier 는 대조가 일이다. 검사 항목은 되풀이하지 않는다.
+Agent 도구 · `subagent_type: tdd-ac-verifier`. green 과 달리 **맥락을 전부 준다** — verifier 는 대조가 일이다. 검사 항목은 되풀이하지 않는다.
 
 ```
 티켓 #<N> · target <owner/repo> · 단위 <단위>
