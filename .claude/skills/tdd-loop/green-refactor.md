@@ -4,7 +4,7 @@
 
 ## 호출
 
-**실패한 신규가 없으면(신규가 전부 가드) 부르지 않는다** — 진행 표에 green 행 `건너뜀(실패 신규 없음)` 을 덧붙이고 [verify.md](verify.md) 로.
+**실패한 신규가 없으면 부르지 않는다** — 진행 표에 green 행 `건너뜀(실패 신규 없음)` 을 덧붙이고 [verify.md](verify.md) 로.
 
 Agent 도구 · `subagent_type: tdd-green`. 입력과 반환 요청만 — 규칙은 agent 정의에 있으므로 프롬프트에 되풀이하지 않는다.
 
@@ -12,7 +12,6 @@ Agent 도구 · `subagent_type: tdd-green`. 입력과 반환 요청만 — 규�
 티켓 #<N> (<Task|Bug>) · target <owner/repo> · 단위 <단위>
 worktree: <절대 경로 — workspace/target/<repo>/ticket-<N>/>
 red 커밋: <sha>[, <sha>] (검토 완료 — 보강 커밋 포함 · 이 단위의 것만)
-신규 가드 테스트: <이름, …> | 없음
 테스트 명령: <예: python -m pytest / go test ./... / npm test>
 
 red 커밋의 테스트를 통과시키고 정리한 뒤 push 하라. 정의된 결과 블록 하나로 돌려달라.
