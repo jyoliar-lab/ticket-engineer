@@ -4,6 +4,8 @@
 
 ## 호출
 
+**실패한 신규가 없으면 부르지 않는다** — 진행 표에 green 행 `건너뜀(실패 신규 없음)` 을 덧붙이고 [verify.md](verify.md) 로.
+
 Agent 도구 · `subagent_type: tdd-green`. 입력과 반환 요청만 — 규칙은 agent 정의에 있으므로 프롬프트에 되풀이하지 않는다.
 
 ```
