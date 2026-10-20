@@ -1,5 +1,7 @@
 ### TDD 시나리오 — jyoliar-lab/obs-toolkit — 명시 설정 경로
 
+공개 경계: 연산(`*_run`) + 그 연산이 이름 부르는 환원 · 파서 — `.claude/rules/tests.md`
+
 #### 타입 · 상수
 
 ```python
