@@ -34,7 +34,7 @@ def show(comments):
         return
 
     print("== 코멘트 %d건 — 본문 밖 추가 요구·방향 수정일 수 있다. "
-          "경계(AC·Requirements)와 같은 무게로 읽어라:" % len(comments))
+          "AC·Requirements와 같은 무게로 읽어라:" % len(comments))
 
     for c in comments:
         print("   ▸ %s (%s)" % (c["login"], c["date"]))

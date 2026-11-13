@@ -21,9 +21,13 @@
 
 티켓은 **GitHub Issue이고, 전부 `jyoliar-lab/ops-workflow` 저장소에 있다** — target·ref 저장소에는 Issue가 없다. `gh`는 저장소를 cwd에서 추정하므로 `gh issue …`에는 어디서 돌리든 `-R jyoliar-lab/ops-workflow`를 붙인다(PR은 target 저장소의 것이라 `gh pr …`는 그 저장소다).
 
-**사람이 티켓 번호를 지정**하는 것이 시작이다. 절차의 실질은 두 skill에 있다:
+**사람이 티켓 번호를 지정**하는 것이 시작이다.
 
-- **착수·재개** — **`ticket-start`** skill: 티켓·근거 문서를 읽고 경계(Acceptance Criteria·Requirements)를 추출한 뒤, 티켓별 worktree를 정렬해 작업을 시작한다. 착수에는 게이트가 있다(계층 전체의 근거 ADR accepted + 비Draft) — 거부되면 우회하지 않고 사람에게.
+**티켓은 방향이고, 작업 중 사람의 지시가 본문보다 앞선다.** 지시가 본문(Requirements · Acceptance Criteria · Technical Notes)과 다르면 **어떻게 다른지 한 줄로 말하고 바로 따른다** — 확인을 기다리지 않고, 티켓 수정을 요구하지 않는다. 본문은 그대로 두고, 달라진 것은 완료 보고에 적는다(`ticket-report`).
+
+절차의 실질은 두 skill에 있다:
+
+- **착수·재개** — **`ticket-start`** skill: 티켓·근거 문서를 읽고 Acceptance Criteria·Requirements를 추출한 뒤, 티켓별 worktree를 정렬해 작업을 시작한다. 착수에는 게이트가 있다(계층 전체의 근거 ADR accepted + 비Draft) — 거부되면 우회하지 않고 사람에게.
 - **완료 보고** — **`ticket-report`** skill: 기계 확인을 통과한 뒤 Acceptance Criteria 항목별 대조를 티켓 코멘트로 게시한다.
 
 착수에는 **TDD 판정**이 있다(`ticket-start` ⑥). 대상이면 코드를 만지기 전에 **`tdd-loop`** skill — 시나리오 표 · red · red 검토 · green · refactor · verify — 를 밟는다. 표 뒤에 사람의 승인을 기다리고, verifier 의 보고 뒤 사람이 다음을 지시한다. 단계 제약은 규약이다 — 막는 것은 없고, 커밋 diff 와 코멘트로 읽힌다.
@@ -42,6 +46,7 @@
 
 - 해당 부분 작업을 **멈추고 사람에게 묻는다.**
 - 티켓과 독립적인 나머지 부분은 계속 진행해도 된다.
+- **사람이 지시로 정한 축은 닫힌 것이다** — 멈추지 않는다(§2).
 
 **target 밖 저장소를 고쳐야 하게 될 때도 같다** — target 목록은 수정 권한의 경계이므로, 스스로 넓히지 않는다. 그 저장소 쪽 작업을 멈추고 **어느 저장소가 왜 필요한지 사람에게 한 줄로 알린다.** 티켓의 '저장소' 절 갱신은 사람의 것이다(§4) — 갱신된 뒤 `ticket-run.py <N>`을 다시 돌려 target worktree가 생긴 다음에 고친다. 그 전에는 읽기만 한다.
 
