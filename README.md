@@ -12,7 +12,7 @@ ops-workflow의 **티켓(GitHub Issue)을 집행하는 엔지니어 agent의 하
 | `workspace/target/<repo>/ticket-<N>/` | 티켓별 worktree — 작업 디렉터리 | agent |
 | `workspace/target/.bare/<repo>.git` | bare 저장소 | `ticket-run.py`만 |
 | `workspace/ref/<repo>` | 참조 저장소. `ref/ops-workflow`는 정책·티켓 코퍼스 | 읽기 전용 — 세션 시작 시 ff-pull |
-| `tmp/` | 초안·마찰 로그·PR 본문·테스트 venv (`staging/` · `github-issues/` · `pr/` · `venv-<repo>/`) | agent |
+| `tmp/` | 초안·PR 본문·테스트 venv (`staging/` · `github-issues/` · `pr/` · `venv-<repo>/`) | agent |
 
 ## 구조로 강제하는 것
 
@@ -20,7 +20,7 @@ ops-workflow의 **티켓(GitHub Issue)을 집행하는 엔지니어 agent의 하
 
 | 무엇 | 어디서 |
 |---|---|
-| 쓰기 경계(`workspace/target/**`·`tmp/**`만, `.bare`·`ref`·하네스 자신은 불가) · `gh issue close` · `gh pr merge` | PreToolUse hook `.claude/hooks/guard-write.py` |
+| 쓰기 경계(`workspace/target/**`·`tmp/**`·Claude Code 메모리 디렉터리 `~/.claude/projects/<슬러그>/memory/`만, `.bare`·`ref`·하네스 자신은 불가) · `gh issue close` · `gh pr merge` | PreToolUse hook `.claude/hooks/guard-write.py` |
 | `gh pr create` · force push | 같은 hook가 거부하고 `ticket-pr.py` 관문으로 보낸다 (재정렬 push의 `--force-with-lease`는 그 안에만) |
 | 착수 게이트(계층 전체의 근거 ADR accepted · Status Todo/In Progress · 열린 선행 없음) | `ticket-run.py` — exit 코드가 다음 행동 |
 | 완료 보고 전제(PR 상태 · 티켓 참조 · close 키워드 · 체크 · target↔worktree 대조) | `preflight.py` — 실패 시 exit 1 |

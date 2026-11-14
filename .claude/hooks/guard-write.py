@@ -5,6 +5,7 @@ Write/Edit/MultiEdit:
   허용 — workspace/target/**                    (티켓 worktree — 수정 권한의 경계)
   허용 — tmp/**                                 (초안 인박스 — tmp/staging·tmp/pr·
          tmp/github-issues. CLAUDE.md §1·§4)
+  허용 — ~/.claude/projects/<슬러그>/memory/**   (이 저장소의 Claude Code 메모리)
   거부 — workspace/ref/**                       (참조 저장소·정책 코퍼스 — 읽기 전용. ADR-0016의 ref)
   거부 — workspace/target/.bare/**              (bare 저장소 — 도구만 만진다)
   거부 — 그 외 전부. 특히 자기 하네스(CLAUDE.md·.claude/**)는
@@ -47,6 +48,14 @@ def under(path, root):
     root = norm(root)
     path = norm(path)
     return path == root or path.startswith(root + os.sep)
+
+
+def memory_dir(proj: str) -> str:
+    """이 저장소의 Claude Code 메모리 디렉터리 — ~/.claude/projects/<슬러그>/memory.
+    슬러그는 저장소 루트 절대경로의 영숫자 외 문자를 '-'로 바꾼 것이다."""
+    config: str = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
+    slug: str = re.sub(r"[^A-Za-z0-9]", "-", os.path.abspath(proj))
+    return os.path.join(config, "projects", slug, "memory")
 
 
 def main():
@@ -107,7 +116,7 @@ def main():
         out_deny("workspace 직속에는 쓰지 않는다 — 작업은 workspace/target/<repo>/ticket-<N>/, "
                  "참조는 workspace/ref/<repo>(읽기 전용)다.")
 
-    if under(fp, os.path.join(proj, "tmp")):
+    if under(fp, os.path.join(proj, "tmp")) or under(fp, memory_dir(proj)):
         allow()
 
     out_deny(
