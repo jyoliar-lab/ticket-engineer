@@ -5,8 +5,6 @@ description: 티켓 완료 보고 절차 — preflight 기계 확인을 통과�
 
 # ticket-report — 완료 보고
 
-보고 형식의 일관성이 곧 사람의 검수 비용이다. 기계가 확인할 수 있는 것은 스크립트가, 충족 여부의 **의미 판정은 네가** 한다.
-
 ## 절차
 
 1. **preflight** — `preflight.py <N>` — **한 번의 실행이 티켓 스코프 전부를 검토한다**: 코멘트 전문을 보이고, 티켓의 target 목록↔worktree를 전수 대조하고, worktree마다 PR·참조·close 키워드·체크를 확인한다. (스킬 스크립트는 PATH에 있다 — 맨 이름으로 실행한다.)
@@ -31,7 +29,7 @@ description: 티켓 완료 보고 절차 — preflight 기계 확인을 통과�
    - 성공 시 출력되는 코멘트 URL(`...#issuecomment-<id>`)의 **`<id>`를 기록해 둔다** — 수정은 이 ID로만 한다.
 4. **게시 후 검수** — 사람이 게시된 코멘트를 읽고 검수한다. 수정 지시가 오면 새 코멘트를 달지 않고 3단계에서 기록한 ID로 **그 코멘트를 지정 수정**한다:
    `gh api -X PATCH repos/jyoliar-lab/ops-workflow/issues/comments/<id> -f body="..."`
-   (`--edit-last`는 쓰지 않는다 — "내 마지막 코멘트"를 잡는 휴리스틱이라 보고 이후 다른 코멘트가 달리면 엉뚱한 것을 수정한다.)
+   (`--edit-last`는 쓰지 않는다.)
 5. **이후는 사람의 것** — 검수·머지·close. 재촉하지 않고 다음 지시를 기다린다.
 
 ## TDD 티켓이면 — 대조표는 verifier 의 것

@@ -1,6 +1,6 @@
 # 4. verify — 다른 눈이 읽고, 사람이 결론을 낸다
 
-주 대화는 여기서 **판정하지 않는다.** `preflight.py` 로 기계 확인을 지나고, subagent `tdd-ac-verifier`(`.claude/agents/tdd-ac-verifier.md` · Fable)를 부르고, 사람의 지시를 기다린다. verifier 가 무엇을 검사하는지는 그 정의가 전부 갖고 있다. **단위마다** 한 번이다 — 그 단위의 담당 AC 만 대조한다.
+주 대화는 여기서 **판정하지 않는다.** `preflight.py` 로 기계 확인을 지나고, subagent `tdd-ac-verifier`(`.claude/agents/tdd-ac-verifier.md` · Fable)를 부르고, 사람의 지시를 기다린다. **단위마다** 한 번이다 — 그 단위의 담당 AC 만 대조한다.
 
 ## preflight 먼저
 
@@ -8,7 +8,7 @@
 preflight.py <N>
 ```
 
-기계 확인이 막히면 verifier 를 돌릴 이유가 없다. TDD 흐름에서 지금 상태는 이래야 한다:
+TDD 흐름에서 지금 상태는 이래야 한다:
 
 - Draft PR 이 열려 있다(① 통과 — Draft 도 OPEN 이다).
 - 마지막 커밋(refactor 또는 green)의 체크가 초록이다(④). **red 커밋의 빨강은 지나간 런**이라 보지 않는다 — 진행 중이면 기다린다.
@@ -18,7 +18,7 @@ preflight.py <N>
 
 ## 호출
 
-Agent 도구 · `subagent_type: tdd-ac-verifier`. green 과 달리 **맥락을 전부 준다** — verifier 는 대조가 일이다. 검사 항목은 되풀이하지 않는다.
+Agent 도구 · `subagent_type: tdd-ac-verifier`. 검사 항목은 프롬프트에 되풀이하지 않는다.
 
 ```
 티켓 #<N> · target <owner/repo> · 단위 <단위>
@@ -57,7 +57,7 @@ PR: <URL>
 | **구현이 틀렸다** (둘째 묶음) | 반증을 행으로 더해 그 단위 재승인 → red(검토자 포함) → green. 테스트가 통과하는 구현을 "고쳐 달라" 고만 green 에 보내지 않는다 — 고칠 근거는 테스트에 있어야 한다 |
 | **사람에게** 묶음 | AC · Technical Notes 갱신은 사람과(CLAUDE.md §3). 갱신 뒤 그 단위의 시나리오부터 |
 
-**`gh pr ready` 는 지시 뒤다.** 지시 전에 풀지 않는다 — Draft 가 "아직 사람이 안 봤다" 의 표식이다. 단위가 남아 있는데 ready 가 오면 남은 단위를 한 줄로 말하고 확인을 받는다.
+**`gh pr ready` 는 지시 뒤다.** 지시 전에 풀지 않는다. 단위가 남아 있는데 ready 가 오면 남은 단위를 한 줄로 말하고 확인을 받는다.
 
 ## 하지 않는 것
 
